@@ -116,7 +116,7 @@ That's it. You're already enqueuing jobs!, let's set up a worker, hurry up!:
 
 You're done, now you can start adding more workers to get automatic load balancing by repeating steps 5 to 8.
 
-To check the status of your queues you can run: roque.exe status 
+To check the status of your queues you can run: ```roque.exe status```
 
     C:\>roque status /maxage=10 /maxlength=500000
     Redis send-pump is starting
@@ -139,7 +139,7 @@ Let's change the approach, let's suppose we want to perform several differnt tas
 
 We don't want to clutter our user entity with the execution of this tasks. We already know a good solution to this problem: events.
 
-1- Create an event-throwing interface.
+1- Create an event-raising interface.
 
 ``` csharp
 
@@ -173,7 +173,7 @@ We don't want to clutter our user entity with the execution of this tasks. We al
     public class BizEventsInitializer {
         // call this on app startup
         public void Init() {
-            // make all events on IUserEvents thrown by this instance available for remote subscription
+            // make all events on IUserEvents raised by this instance available for remote subscription
             RoqueEventBroadcaster.SubscribeToAll<IUserEvents(UserBiz.Instance);
         }
     }
@@ -296,18 +296,18 @@ Now you can check the status of your queues and you should see the "user signed 
     Redis send-pump is starting
     roque Information: 0 : [REDIS] connected to localhost:6379
     Queue images has 14 pending jobs. Next job was created 4sec ago.
-    Queue grettings has 434 pending jobs. Next job was created 1min 12sec ago.
+    Queue greetings has 434 pending jobs. Next job was created 1min 12sec ago.
 
 
 Note: This example seems to show that my mail sender is not keeping the pace, I might have to add more workers on the greetings queue, or check the speed of my SMTP server.
 
-You can check event subscriptions by running roque.exe events
+You can check event subscriptions by running ```roque.exe events```
 
     C:\>roque events
     Redis send-pump is starting
     roque Information: 0 : [REDIS] connected to localhost:6379
     Queue _events has 1 event with subscribers
-       Acme.MySite.Biz.IUserEvents:UserSignedUp is observed by images, grettings
+       Acme.MySite.Biz.IUserEvents:UserSignedUp is observed by images, greetings
 
 ## Benchmarks
 
@@ -352,7 +352,7 @@ Roque supports 2 type of queues:
 
 This type of queue is used when you directly invoke a method in a proxy (check Example 1)
 
-- (P)roducer here is a dynamic proxy built using: RoqueProxyGenerate.Create<IMyService>("queuename");
+- (P)roducer here is a dynamic proxy built using: ```RoqueProxyGenerate.Create<IMyService>("queuename");```
 - A message is sent to the queue on each method invocation
 - queues are redis lists
 - (C)consumer are Roque Workers that instantiate a service class (implementing IMyService), can be run on console or a window service instance.
@@ -364,7 +364,7 @@ This type of queue is used when you directly invoke a method in a proxy (check E
 Here a new actor appears to introduce decoupling between producer and consumers, this what we want when we create events in C#.
 So this type of queue is used when raise events that are observed by a RoqueEventBroadcaster. (check Example 2)
 
-- (P)roducer here is a RoqueEventBroadcaster object that's subscribed to specific events in your app: new RoqueEventBroadCaster().HandleEvents<MyInterfaceWithEvents>(objectImplementingMyInterfaceWithEvents);
+- (P)roducer here is a RoqueEventBroadcaster object that's subscribed to specific events in your app: ```new RoqueEventBroadCaster().HandleEvents<MyInterfaceWithEvents>(objectImplementingMyInterfaceWithEvents);```
 - A message is sent to the queue each time the event raises (only if there are subscribers listening)
 - (B)roadcaster, as you may guess, your RoqueEventBroadCaster object. He copies the message to each queue where there's a subscriber waiting. On Redis a SortedSet of subscribed queues is maintained for each specific C# event you subscribe to. Subscriber sets are cached by broadcaster and on any change they get notified in realtime using a Redis PUB/SUB message. 
 - Once the message is copied into each queue all continues as in a Work Queue (each subscribed queue is a Work Queue)
