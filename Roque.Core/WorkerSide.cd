@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" GroupingSetting="Access">
+  <Class Name="Cinchcast.Roque.Core.Queue" Collapsed="true">
+    <Position X="1.25" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABACAEAACAEAIJCAAEAADQIAAAABEAggMAAAAAAABA=</HashCode>
+      <FileName>Queue.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Cinchcast.Roque.Core.Job" Collapsed="true">
+    <Position X="3.75" Y="1.25" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Public" Collapsed="true" />
+      <Compartment Name="Private" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAQAAAAAAAQAAAAgACAAAAAAAECAJAAAEAAASAA=</HashCode>
+      <FileName>Job.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Cinchcast.Roque.Core.Worker" Collapsed="true">
+    <Position X="6.25" Y="0.75" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Private" Collapsed="true" />
+    </Compartments>
+    <NestedTypes>
+      <Enum Name="Cinchcast.Roque.Core.Worker.WorkerState" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Worker.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAgAKACAACIAgABAAAKAAASCQAAAAECAIIAABAAEAAA=</HashCode>
+      <FileName>Worker.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Queue" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Cinchcast.Roque.Core.Executor" Collapsed="true">
+    <Position X="6.25" Y="2" Width="1.5" />
+    <NestedTypes>
+      <Class Name="Cinchcast.Roque.Core.Executor.Target" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Executor.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>IAQAAAAAEAAAIAQAAQAEIAAIABAQgAAAACAAAAAAAAA=</HashCode>
+      <FileName>Executor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

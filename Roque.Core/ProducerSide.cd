@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" GroupingSetting="Access">
+  <Class Name="Cinchcast.Roque.Core.Queue" Collapsed="true">
+    <Position X="6.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABACAEAACAEAIJCAAEAADQIAAAABEAggMAAAAAAABA=</HashCode>
+      <FileName>Queue.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Cinchcast.Roque.Core.Job" Collapsed="true">
+    <Position X="4" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAQAAAAAAAQAAAAgACAAAAAAAECAJAAAEAAASAA=</HashCode>
+      <FileName>Job.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Cinchcast.Roque.Core.RoqueEventBroadcaster" Collapsed="true">
+    <Position X="1" Y="0.5" Width="2" />
+    <Compartments>
+      <Compartment Name="Private" Collapsed="true" />
+    </Compartments>
+    <NestedTypes>
+      <Class Name="Cinchcast.Roque.Core.RoqueEventBroadcaster.Handler" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>RoqueEventBroadcaster.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Cinchcast.Roque.Core.RoqueEventBroadcaster.Handler&lt;T&gt;" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>RoqueEventBroadcaster.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAABAQEACAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RoqueEventBroadcaster.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Queue" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="Cinchcast.Roque.Core.RoqueProxyGenerator">
+    <Position X="1" Y="1.5" Width="2" />
+    <Compartments>
+      <Compartment Name="Private" Collapsed="true" />
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Class Name="Cinchcast.Roque.Core.RoqueProxyGenerator.Interceptor&lt;T&gt;" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>RoqueProxyGenerator.cs</NewMemberFileName>
+        </TypeIdentifier>
+        <Lollipop Position="0.2" />
+      </Class>
+      <Class Name="Cinchcast.Roque.Core.RoqueProxyGenerator.Proxy">
+        <Compartments>
+          <Compartment Name="Private" Collapsed="true" />
+          <Compartment Name="Fields" Collapsed="true" />
+        </Compartments>
+        <TypeIdentifier>
+          <NewMemberFileName>RoqueProxyGenerator.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAEAAAAA=</HashCode>
+      <FileName>RoqueProxyGenerator.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
