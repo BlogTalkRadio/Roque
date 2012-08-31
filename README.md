@@ -292,27 +292,22 @@ This means you can just drop a new subscriber at any worker and your website(s) 
 
 Now you can check the status of your queues and you should see the "user signed up" event being copied to both queues:
 
-'''
-
     C:\>roque status
     Redis send-pump is starting
     roque Information: 0 : [REDIS] connected to localhost:6379
     Queue images has 14 pending jobs. Next job was created 4sec ago.
     Queue grettings has 434 pending jobs. Next job was created 1min 12sec ago.
-'''
+
 
 Note: This example seems to show that my mail sender is not keeping the pace, I might have to add more workers on the greetings queue, or check the speed of my SMTP server.
 
 You can check event subscriptions by running roque.exe events
-
-'''
 
     C:\>roque events
     Redis send-pump is starting
     roque Information: 0 : [REDIS] connected to localhost:6379
     Queue _events has 1 event with subscribers
        Acme.MySite.Biz.IUserEvents:UserSignedUp is observed by images, grettings
-'''
 
 ## Benchmarks
 
