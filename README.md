@@ -353,7 +353,7 @@ Roque supports 2 type of queues:
 
 ### Work Queue
 
-<img src="mq_work.png"/>
+<img src="https://raw.github.com/benjamine/Roque/master/mq_work.png" alt="work queue"/>
 
 This type of queue is used when you directly invoke a method in a proxy (check Example 1)
 
@@ -364,7 +364,7 @@ This type of queue is used when you directly invoke a method in a proxy (check E
 
 ### Pub/Sub (in front of Work Queues)
 
-<img src="mq_pubsub_work.png"/>
+<img src="https://raw.github.com/benjamine/Roque/master/mq_pubsub_work.png" alt="pub/sub queue"/>
 
 Here a new actor appears to introduce decoupling between producer and consumers, this what we want when we create events in C#.
 So this type of queue is used when raise events that are observed by a RoqueEventBroadcaster. (check Example 2)
