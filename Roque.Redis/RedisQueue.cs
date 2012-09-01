@@ -19,7 +19,7 @@ namespace Cinchcast.Roque.Redis
     using System.Text;
 
     /// <summary>
-    /// TODO: Update summary.
+    /// Redis-based implementation of a <see cref="Queue"/>
     /// </summary>
     public class RedisQueue : Queue, IQueueWithInProgressData
     {

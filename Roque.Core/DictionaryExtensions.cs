@@ -12,7 +12,7 @@ namespace Cinchcast.Roque.Core
     using System.Text;
 
     /// <summary>
-    /// TODO: Update summary.
+    /// Utility methods to get values from an IDictionary
     /// </summary>
     public static class DictionaryExtensions
     {

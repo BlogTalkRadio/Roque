@@ -14,7 +14,7 @@ namespace Cinchcast.Roque.Common
     using System.Text;
 
     /// <summary>
-    /// TODO: Update summary.
+    /// Work service implementation example
     /// </summary>
     public class Trace : ITrace
     {

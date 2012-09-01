@@ -14,7 +14,8 @@ namespace Cinchcast.Roque.Common
     using System.Text;
 
     /// <summary>
-    /// TODO: Update summary.
+    /// Subscriber class example. All methods starting with "Subscribe" will be called on initialization.
+    /// All events you subscribe to in Subscribe* methods will be routed to the queue you attach this class to. 
     /// </summary>
     public class PropertyChangeTracer
     {

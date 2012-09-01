@@ -12,7 +12,7 @@ namespace Cinchcast.Roque.Common
     using System.Text;
 
     /// <summary>
-    /// TODO: Update summary.
+    /// Work service interface example
     /// </summary>
     public interface ITrace
     {
