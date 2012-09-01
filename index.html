@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Roque : event &amp; work queueing framework for .Net" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Roque</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/benjamine/Roque">View on GitHub</a>
+
+          <h1 id="project_title">Roque</h1>
+          <h2 id="project_tagline">event &amp; work queueing framework for .Net</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/benjamine/Roque/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/benjamine/Roque/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>Roque</h1>
+
+<p><em>pronounced "raw-queue"</em></p>
+
+<p>Roque is an event &amp; work queueing framework for .Net, made simple.</p>
+
+<p>It sits on top of the C# abstractions you know (plain old C# events and methods), and uses <a href="http://redis.io/">Redis</a> behind the scenes to make them work in an async, transparent, distributed, scalable, decoupled and failure-proof way.</p>
+
+<p>Message queueing doesn't get simpler than this!</p>
+
+<blockquote>
+<p>Really?? ... show me!</p>
+</blockquote>
+
+<h2>Example 1: Image Processing</h2>
+
+<p>Lets say we have a website and we want to build thumbnails for uploaded pics, that's a time-consuming operation we can't perform during the lifetime of web request.</p>
+
+<p>1- Create a service interface.</p>
+
+<div class="highlight"><pre>
+    <span class="k">public</span> <span class="k">interface</span> <span class="n">IImageProcessor</span> <span class="p">{</span>
+        <span class="k">void</span> <span class="nf">CreateThumbnail</span><span class="p">(</span><span class="kt">string</span> <span class="n">filename</span><span class="p">,</span> <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="kt">int</span> <span class="n">height</span><span class="p">,</span> <span class="n">AlgorithmOptions</span> <span class="n">options</span><span class="p">);</span>
+    <span class="p">}</span>
+</pre></div>
+
+<p>2- Use it on your application:</p>
+
+<div class="highlight"><pre>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">ImageBiz</span> <span class="p">{</span>
+        <span class="n">IImageProcessor</span> <span class="n">ImageProcessor</span> <span class="p">=</span> <span class="n">RoqueProxyGenerator</span><span class="p">.</span><span class="n">Create</span><span class="p">&lt;</span><span class="n">IImageProcessor</span><span class="p">&gt;(</span><span class="s">"images"</span><span class="p">);</span>
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">ImageUploaded</span><span class="p">(</span><span class="n">filename</span><span class="p">){</span>
+            <span class="n">ImageProcessor</span><span class="p">.</span><span class="n">CreateThumbnail</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="m">160</span><span class="p">,</span> <span class="m">120</span><span class="p">,</span> <span class="k">new</span> <span class="n">AlgorithmOptions</span> <span class="p">{</span> <span class="n">Quality</span><span class="p">=</span><span class="m">0.7</span> <span class="p">});</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+
+<p>Note: add references to Roque.Core and Roque.Redis assemblies to your project.</p>
+
+<p>3- Config a redis-based queue named "images":</p>
+
+<div class="highlight"><pre>
+    <span class="cp">&lt;?xml version="1.0"?&gt;</span>
+    <span class="nt">&lt;configuration&gt;</span>
+      <span class="nt">&lt;configSections&gt;</span>
+        <span class="nt">&lt;section</span> <span class="na">name=</span><span class="s">"roque"</span> <span class="na">type=</span><span class="s">"Cinchcast.Roque.Core.Configuration.Roque, Roque.Core"</span><span class="nt">/&gt;</span>
+      <span class="nt">&lt;/configSections&gt;</span>
+      <span class="nt">&lt;roque&gt;</span>
+        <span class="nt">&lt;queues&gt;</span>
+          <span class="nt">&lt;queue</span> <span class="na">name=</span><span class="s">"images"</span> <span class="na">type=</span><span class="s">"Cinchcast.Roque.Redis.RedisQueue, Roque.Redis"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;settings&gt;</span>
+              <span class="nt">&lt;setting</span> <span class="na">key=</span><span class="s">"host"</span> <span class="na">value=</span><span class="s">"localhost"</span><span class="nt">/&gt;</span>
+              <span class="c">&lt;!-- Optional, if not specified default Redis port is used: 6379 --&gt;</span>
+              <span class="nt">&lt;setting</span> <span class="na">key=</span><span class="s">"port"</span> <span class="na">value=</span><span class="s">"6379"</span><span class="nt">/&gt;</span> 
+            <span class="nt">&lt;/settings&gt;</span>
+          <span class="nt">&lt;/queue&gt;</span>
+        <span class="nt">&lt;/queues&gt;</span>
+      <span class="nt">&lt;/roque&gt;</span>
+    <span class="nt">&lt;/configuration&gt;</span>
+</pre></div>
+
+<p>That's it. You're already enqueuing jobs!, let's set up a worker, hurry up!:</p>
+
+<p>4- Implement your image processor service:</p>
+
+<div class="highlight"><pre>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">ImageProcessor</span> <span class="p">:</span> <span class="n">IImageProcessor</span> <span class="p">{</span>
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">CreateThumbnail</span><span class="p">(</span><span class="kt">string</span> <span class="n">filename</span><span class="p">,</span> <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="kt">int</span> <span class="n">height</span><span class="p">,</span> <span class="n">AlgorithmOptions</span> <span class="n">options</span> <span class="p">=</span> <span class="k">null</span><span class="p">){</span>
+            <span class="c1">// a time-consuming task, eg: resize the image and save it adding a suffix</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">NotImplementedException</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+
+<p>5- Install Roque service on a machine (with access to your Redis server).</p>
+
+<p>6- On the same folder of roque.exe drop the assembly(ies) containing IImageProcessor interface and ImageProcessor class.</p>
+
+<p>7- On the worker Roque.exe.config:</p>
+
+<div class="highlight"><pre>
+    <span class="cp">&lt;?xml version="1.0"?&gt;</span>
+    <span class="nt">&lt;configuration&gt;</span>
+      <span class="nt">&lt;configSections&gt;</span>
+        <span class="nt">&lt;section</span> <span class="na">name=</span><span class="s">"roque"</span> <span class="na">type=</span><span class="s">"Cinchcast.Roque.Core.Configuration.Roque, Roque.Core"</span><span class="nt">/&gt;</span>
+      <span class="nt">&lt;/configSections&gt;</span>
+      <span class="nt">&lt;roque&gt;</span>
+        <span class="nt">&lt;queues&gt;</span>
+          <span class="nt">&lt;queue</span> <span class="na">name=</span><span class="s">"images"</span> <span class="na">type=</span><span class="s">"Cinchcast.Roque.Redis.RedisQueue, Roque.Redis"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;settings&gt;</span>
+              <span class="nt">&lt;setting</span> <span class="na">key=</span><span class="s">"host"</span> <span class="na">value=</span><span class="s">"localhost"</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;/settings&gt;</span>
+          <span class="nt">&lt;/queue&gt;</span>
+        <span class="nt">&lt;/queues&gt;</span>
+        <span class="nt">&lt;workers&gt;</span>
+          <span class="c">&lt;!-- a worker poping jobs from "images" queue --&gt;</span> 
+          <span class="nt">&lt;worker</span> <span class="na">name=</span><span class="s">"main"</span> <span class="na">queue=</span><span class="s">"images"</span><span class="nt">/&gt;</span>
+        <span class="nt">&lt;/workers&gt;</span>    
+      <span class="nt">&lt;/roque&gt;</span>
+      <span class="nt">&lt;castle&gt;</span>
+        <span class="nt">&lt;components&gt;</span>
+          <span class="c">&lt;!-- using Castle Windsor to tell Roque what image processing service to use. type name must be fully qualified --&gt;</span> 
+          <span class="nt">&lt;component</span> <span class="na">service=</span><span class="s">"Acme.Images.IImageProcessor"</span> <span class="na">type=</span><span class="s">"Acme.Images.ImageProcessor, Acme.Images"</span><span class="nt">/&gt;</span>
+        <span class="nt">&lt;/components&gt;</span>
+      <span class="nt">&lt;/castle&gt;</span>
+    <span class="nt">&lt;/configuration&gt;</span>
+</pre></div>
+
+<p>8- Start Roque Service to start processing images!</p>
+
+<p>(or you can roque.exe from a console, use: roque.exe /debug to attach your VisualStudio and debug your image processor)</p>
+
+<p>You're done, now you can start adding more workers to get automatic load balancing by repeating steps 5 to 8.</p>
+
+<p>To check the status of your queues you can run: <code>roque.exe status</code></p>
+
+<pre><code>C:\&gt;roque status /maxage=10 /maxlength=500000
+Redis send-pump is starting
+roque Information: 0 : [REDIS] connected to localhost:6379
+Queue images has 262570 pending jobs. Next job was created &lt; 1sec ago.
+Queue audiofiles has 3342 pending jobs. Next job was created 12sec ago. [TOO OLD]
+Queue zipping is empty.
+ERROR: 1 queue have too old pending jobs
+</code></pre>
+
+<p>run roque.exe without arguments to see al options.</p>
+
+<blockquote>
+<p>That's awesome! but I want events, I need decoupling, I want multiple and easy to add/replace/remove subscribers. But I don't want to read books on <a href="http://goo.gl/wipxw">Message Queues</a>.</p>
+</blockquote>
+
+<p>(If you wonder what's the difference check the queue diagrams below showing a work queue and a pub/sub queue)</p>
+
+<h2>Example 2: Website User Sign-up post tasks.</h2>
+
+<p>Let's change the approach, let's suppose we want to perform several differnt tasks each time a user signs up. These tasks include creating a thumbnail of users profile pic, and sending a welcome email. (we could add logging, stats, analytics, etc.)</p>
+
+<p>We don't want to clutter our user entity with the execution of this tasks. We already know a good solution to this problem: events.</p>
+
+<p>1- Create an event-raising interface.</p>
+
+<div class="highlight"><pre>
+    <span class="k">public</span> <span class="k">interface</span> <span class="n">IUserEvents</span> <span class="p">{</span>
+        <span class="k">event</span> <span class="n">EventHandler</span><span class="p">&lt;</span><span class="n">UserEventArgs</span><span class="p">&gt;</span> <span class="n">UserSignedUp</span><span class="p">;</span>
+    <span class="p">}</span>
+</pre></div>
+
+<p>2- Throw events on your application</p>
+
+<div class="highlight"><pre>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">UserBiz</span> <span class="p">:</span> <span class="n">IUserEvents</span> <span class="p">{</span>
+
+        <span class="k">public</span> <span class="k">event</span> <span class="n">EventHandler</span><span class="p">&lt;</span><span class="n">UserEventArgs</span><span class="p">&gt;</span> <span class="n">UserSignedUp</span><span class="p">;</span>
+
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">SignUp</span><span class="p">(</span><span class="kt">string</span> <span class="n">username</span><span class="p">,</span> <span class="kt">string</span> <span class="n">password</span><span class="p">,</span> <span class="kt">string</span> <span class="n">email</span><span class="p">)</span> <span class="p">{</span>
+
+            <span class="c1">// TODO: insert the user in my database</span>
+
+            <span class="kt">var</span> <span class="n">handler</span> <span class="p">=</span> <span class="n">UserSignedUp</span><span class="p">;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">handler</span> <span class="p">!=</span> <span class="k">null</span><span class="p">){</span>
+                <span class="n">handler</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="k">new</span> <span class="n">UserEventArgs</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">email</span><span class="p">));</span>
+            <span class="p">}</span>
+
+            <span class="c1">// TIP: if you want you can save a few lines writting an extension method for Exception</span>
+            <span class="c1">// UserSignedUp.Raise(new UserEventArgs(username, email));</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">BizEventsInitializer</span> <span class="p">{</span>
+        <span class="c1">// call this on app startup</span>
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">Init</span><span class="p">()</span> <span class="p">{</span>
+            <span class="c1">// make all events on IUserEvents raised by this instance available for remote subscription</span>
+            <span class="n">RoqueEventBroadcaster</span><span class="p">.</span><span class="n">SubscribeToAll</span><span class="p">&lt;</span><span class="n">IUserEvents</span><span class="p">(</span><span class="n">UserBiz</span><span class="p">.</span><span class="n">Instance</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+
+<p>3- Config redis-based events queue:</p>
+
+<div class="highlight"><pre>
+    <span class="cp">&lt;?xml version="1.0"?&gt;</span>
+    <span class="nt">&lt;configuration&gt;</span>
+      <span class="nt">&lt;configSections&gt;</span>
+        <span class="nt">&lt;section</span> <span class="na">name=</span><span class="s">"roque"</span> <span class="na">type=</span><span class="s">"Cinchcast.Roque.Core.Configuration.Roque, Roque.Core"</span><span class="nt">/&gt;</span>
+      <span class="nt">&lt;/configSections&gt;</span>
+      <span class="nt">&lt;roque&gt;</span>
+        <span class="nt">&lt;queues&gt;</span>
+          <span class="c">&lt;!-- Reserved name _events is used by default by RoqueEventBroadcaster --&gt;</span>
+          <span class="nt">&lt;queue</span> <span class="na">name=</span><span class="s">"_events"</span> <span class="na">type=</span><span class="s">"Cinchcast.Roque.Redis.RedisQueue, Roque.Redis"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;settings&gt;</span>
+              <span class="nt">&lt;setting</span> <span class="na">key=</span><span class="s">"host"</span> <span class="na">value=</span><span class="s">"localhost"</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;/settings&gt;</span>
+          <span class="nt">&lt;/queue&gt;</span>
+        <span class="nt">&lt;/queues&gt;</span>
+      <span class="nt">&lt;/roque&gt;</span>
+    <span class="nt">&lt;/configuration&gt;</span>
+</pre></div>
+
+<p>Your website is ready!, You're events are available, they'll get in your queues as soon as you add subscribers for them.</p>
+
+<p>Note: If no subscribers are found for an event, nothing is sent to Redis. You _events queue will always be empty (it won't even exist on Redis), as events never get directly enqueued, they get broadcasted to other queues.</p>
+
+<p>4- Add some subscribers:</p>
+
+<div class="highlight"><pre>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">ThumbnailCreator</span> <span class="p">{</span>
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">SubscribeTo</span><span class="p">(</span><span class="n">IUserEvents</span> <span class="n">userEvents</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">userEvents</span><span class="p">.</span><span class="n">UserSignedUp</span><span class="p">+=</span> <span class="n">UserEvents_UserSignedUp</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">UserEvents_UserSignedUp</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">UserEventArgs</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// let's reuse or image processing service here</span>
+            <span class="k">new</span> <span class="nf">ImageProcessor</span><span class="p">().</span><span class="n">CreateThumbnail</span><span class="p">(</span><span class="s">"pics/"</span><span class="p">+</span><span class="n">args</span><span class="p">.</span><span class="n">Username</span><span class="p">+</span><span class="s">".jpg"</span><span class="p">,</span> <span class="m">160</span><span class="p">,</span> <span class="m">120</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+
+<div class="highlight"><pre>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">UserGreeter</span> <span class="p">{</span>
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">SubscribeTo</span><span class="p">(</span><span class="n">IUserEvents</span> <span class="n">userEvents</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">userEvents</span><span class="p">.</span><span class="n">UserSignedUp</span><span class="p">+=</span> <span class="n">UserEvents_UserSignedUp</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">UserEvents_UserSignedUp</span><span class="p">(</span><span class="kt">object</span> <span class="n">sender</span><span class="p">,</span> <span class="n">UserEventArgs</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">MailSender</span><span class="p">.</span><span class="n">SendWelcomeEmail</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">Username</span><span class="p">,</span> <span class="n">args</span><span class="p">.</span><span class="n">Email</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+
+<p>5- Install Roque service on a machine (if you didn't before).</p>
+
+<p>6- On the same folder of roque.exe drop the assembly(ies) containing IUserEvents interface and your ThumbnailCreator and UserGreeter classes.</p>
+
+<p>7- On Roque.exe.config:</p>
+
+<div class="highlight"><pre>
+    <span class="cp">&lt;?xml version="1.0"?&gt;</span>
+    <span class="nt">&lt;configuration&gt;</span>
+      <span class="nt">&lt;configSections&gt;</span>
+        <span class="nt">&lt;section</span> <span class="na">name=</span><span class="s">"roque"</span> <span class="na">type=</span><span class="s">"Cinchcast.Roque.Core.Configuration.Roque, Roque.Core"</span><span class="nt">/&gt;</span>
+      <span class="nt">&lt;/configSections&gt;</span>
+      <span class="nt">&lt;roque&gt;</span>
+        <span class="nt">&lt;queues&gt;</span>
+          <span class="nt">&lt;queue</span> <span class="na">name=</span><span class="s">"images"</span> <span class="na">type=</span><span class="s">"Cinchcast.Roque.Redis.RedisQueue, Roque.Redis"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;settings&gt;</span>
+              <span class="nt">&lt;setting</span> <span class="na">key=</span><span class="s">"host"</span> <span class="na">value=</span><span class="s">"localhost"</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;/settings&gt;</span>
+          <span class="nt">&lt;/queue&gt;</span>
+          <span class="nt">&lt;queue</span> <span class="na">name=</span><span class="s">"greetings"</span> <span class="na">type=</span><span class="s">"Cinchcast.Roque.Redis.RedisQueue, Roque.Redis"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;settings&gt;</span>
+              <span class="nt">&lt;setting</span> <span class="na">key=</span><span class="s">"host"</span> <span class="na">value=</span><span class="s">"localhost"</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;/settings&gt;</span>
+          <span class="nt">&lt;/queue&gt;</span>
+        <span class="nt">&lt;/queues&gt;</span>
+        <span class="nt">&lt;workers&gt;</span>
+          <span class="c">&lt;!-- a worker poping jobs from "images" queue --&gt;</span> 
+          <span class="nt">&lt;worker</span> <span class="na">name=</span><span class="s">"main"</span> <span class="na">queue=</span><span class="s">"images"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;subscribers&gt;</span>
+                <span class="c">&lt;!-- all events that ThumbnailCreator subscribes to will be broadcasted to this worker's queue (images) --&gt;</span> 
+                <span class="nt">&lt;subscriber</span> <span class="na">type=</span><span class="s">"Acme.Images.ThumbnailCreator, Acme.Images"</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;/subscribers&gt;</span>
+          <span class="nt">&lt;/worker&gt;</span>
+          <span class="c">&lt;!-- a worker poping jobs from "greettings" queue --&gt;</span> 
+          <span class="nt">&lt;worker</span> <span class="na">name=</span><span class="s">"main"</span> <span class="na">queue=</span><span class="s">"greetings"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;subscribers&gt;</span>
+                <span class="c">&lt;!-- all events that UserGreeter subscribes to will be broadcasted to this worker's queue (greetings) --&gt;</span> 
+                <span class="nt">&lt;subscriber</span> <span class="na">type=</span><span class="s">"Acme.Messaging.UserGreeter, Acme.Messaging"</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;/subscribers&gt;</span>
+          <span class="nt">&lt;/worker&gt;</span>
+        <span class="nt">&lt;/workers&gt;</span>    
+      <span class="nt">&lt;/roque&gt;</span>
+    <span class="nt">&lt;/configuration&gt;</span>
+</pre></div>
+
+<p>Now this requires some explanation. What I'm saying here is, create 2 separate queues, with a worker listening on each queue.</p>
+
+<p>Each worker has a subscriber on it. Roque detects all events a subscriber is attached to (using interceptors on event handlers). That allows Roque to broadcast each event to all queues where there as least one worker, with a subscriber interested on this specific event. </p>
+
+<p>This means Roque routes event messages automatically for you! Efficiently and without further configuration.</p>
+
+<p>On the publisher side (eg. your website) a lists of subscribed queues is mantained and cached, if a new type of subscriber is found in any worker cache clear request is sent with a Redis PUB/SUB message.</p>
+
+<p>This means you can just drop a new subscriber at any worker and your website(s) will immediately start sending the events you expect (and nothing more!).</p>
+
+<p>8- Start (or restart) Roque Service.</p>
+
+<p>Now you can check the status of your queues and you should see the "user signed up" event being copied to both queues:</p>
+
+<pre><code>C:\&gt;roque status
+Redis send-pump is starting
+roque Information: 0 : [REDIS] connected to localhost:6379
+Queue images has 14 pending jobs. Next job was created 4sec ago.
+Queue greetings has 434 pending jobs. Next job was created 1min 12sec ago.
+</code></pre>
+
+<p>Note: This example seems to show that my mail sender is not keeping the pace, I might have to add more workers on the greetings queue, or check the speed of my SMTP server.</p>
+
+<p>You can check event subscriptions by running <code>roque.exe events</code></p>
+
+<pre><code>C:\&gt;roque events
+Redis send-pump is starting
+roque Information: 0 : [REDIS] connected to localhost:6379
+Queue _events has 1 event with subscribers
+   Acme.MySite.Biz.IUserEvents:UserSignedUp is observed by images, greetings
+</code></pre>
+
+<h2>Benchmarks</h2>
+
+<p>On a very preliminar and simple benchmark with this conditions:</p>
+
+<ul>
+<li>100K messages (jobs/tasks/events).</li>
+<li>Running Redis, publisher and workers on a single machine.</li>
+<li>An almost zero-effort job (we just want to test the engine)</li>
+</ul><p>We got:</p>
+
+<ul>
+<li>Enqueueing ~ 47.6K jobs per second</li>
+<li>Dequeueing with 1 worker ~ 4.6K jobs per second</li>
+<li>Dequeueing with 3 workers ~ 9.9K jobs per second </li>
+</ul><p>Note: Dequeuing speed can be increased by adding more workers (and eventually more Redis clusters).Although running multiple workers on same machine doesn't make a lot of sense, a more significant improvement would come from running workers on different machines.</p>
+
+<h2>Features</h2>
+
+<ul>
+<li>Queues are persisted on Redis. Redis is <em>fast</em>, scalable and simple to set up. (Others storages can be plugged in)</li>
+<li>Transparent integration. Just call your methods, raise your events. They already make your intent clear, no need for complex message routing configurations, <em>DRY</em>.</li>
+<li>You keep your code strong-typed (compile-time checks, intellisense, refactoring) and completely agnostic of the queueing mechanism. </li>
+<li>Jobs are stored as simple JSON objects that any person or app can read.</li>
+<li>Scalability. If your queues are getting full, just start more workers. You can have multiple distributed worker instances picking jobs from the same queue, work load gets balanced. Workers can be added or removed at any time. Multiple publishers are supported too.</li>
+<li>On workers, service classes are resolved using IoC, so you can easy swap implementations.</li>
+<li>Run on console (useful for debugging) or as a windows service.</li>
+<li>Built-in support for resuming jobs. If a worker is shut down unexpectedly, when restarted it will retry the same job.</li>
+<li>Configure retrying rules (time to wait before retrying, max number of times) based on Exception types.</li>
+<li>Minimal latency. By using Redis no polling is done, jobs are pushed immediately to the first available worker. pushing and popping is <em>fast</em> (Redis LPUSH / BRPOPLPUSH based).</li>
+<li>Monitor queue status, and check when queues are getting too long (need more workers?), or jobs are getting too old (workers are down or disconnected?).</li>
+<li>Supports 2 message queue patterns:
+
+<ul>
+<li>Work queues (by invoking methods). eg. request the execution of a job asynchronously.</li>
+<li>Message broadcasting (pub/sub) in front of work queues (by raising events). eg. notify multiple subscriptors that perform jobs on specific events.</li>
+</ul>
+</li>
+</ul><h2>Queue Patterns</h2>
+
+<p>Roque supports 2 type of queues:</p>
+
+<h3>Work Queue</h3>
+
+<p><img src="https://raw.github.com/benjamine/Roque/master/mq_work.png" alt="work queue"></p>
+
+<p>This type of queue is used when you directly invoke a method in a proxy (check Example 1)</p>
+
+<ul>
+<li>(P)roducer here is a dynamic proxy built using: <code>RoqueProxyGenerate.Create&lt;IMyService&gt;("queuename");</code>
+</li>
+<li>A message is sent to the queue on each method invocation</li>
+<li>queues are redis lists</li>
+<li>(C)consumer are Roque Workers that instantiate a service class (implementing IMyService), can be run on console or a window service instance.</li>
+</ul><h3>Pub/Sub (in front of Work Queues)</h3>
+
+<p><img src="https://raw.github.com/benjamine/Roque/master/mq_pubsub_work.png" alt="pub/sub queue"></p>
+
+<p>Here a new actor appears to introduce decoupling between producer and consumers, this what we want when we create events in C#.
+So this type of queue is used when raise events that are observed by a RoqueEventBroadcaster. (check Example 2)</p>
+
+<ul>
+<li>(P)roducer here is a RoqueEventBroadcaster object that's subscribed to specific events in your app: <code>new RoqueEventBroadCaster().HandleEvents&lt;MyInterfaceWithEvents&gt;(objectImplementingMyInterfaceWithEvents);</code>
+</li>
+<li>A message is sent to the queue each time the event raises (only if there are subscribers listening)</li>
+<li>(B)roadcaster, as you may guess, your RoqueEventBroadCaster object. He copies the message to each queue where there's a subscriber waiting. On Redis a SortedSet of subscribed queues is maintained for each specific C# event you subscribe to. Subscriber sets are cached by broadcaster and on any change they get notified in realtime using a Redis PUB/SUB message. </li>
+<li>Once the message is copied into each queue all continues as in a Work Queue (each subscribed queue is a Work Queue)</li>
+</ul><h2>Retrying</h2>
+
+<p>If a job fails (either in a work service class or an event handler provided by a subscriber class) Roque allows you to specify if the Worker should retry to execute it.</p>
+
+<h3>RetryOnAttribute</h3>
+
+<div class="highlight"><pre>
+    <span class="c1">// (on all class methods) if the thumbnails file server is down, keep retrying until someone fix it</span>
+<span class="na">    [RetryOn(typeof(ThumbnailsFileServerNotFoundExceptin), DelaySeconds=30, MaxTimes=100)]</span>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">ImageProcessor</span> <span class="p">:</span> <span class="n">IImageProcessor</span> <span class="p">{</span>
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">CreateThumbnail</span><span class="p">(</span><span class="kt">string</span> <span class="n">filename</span><span class="p">,</span> <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="kt">int</span> <span class="n">height</span><span class="p">,</span> <span class="n">AlgorithmOptions</span> <span class="n">options</span> <span class="p">=</span> <span class="k">null</span><span class="p">){</span>
+            <span class="c1">// a time-consuming task, eg: resize the image and save it adding a suffix</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">NotImplementedException</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+
+<h3>DontRetryOnAttribute</h3>
+
+<div class="highlight"><pre>
+    <span class="c1">// always retry any method if unexpected exceptions occur</span>
+<span class="na">    [RetryOn(typeof(ThumbnailsFileServerNotFoundExceptin), DelaySeconds=30)]</span>
+    <span class="k">public</span> <span class="k">class</span> <span class="nc">ImageProcessor</span> <span class="p">:</span> <span class="n">IImageProcessor</span> <span class="p">{</span>
+
+        <span class="c1">// if the original file is not found, the user must have deleted the image, don't retry</span>
+<span class="na">        [DontRetryOn(typeof(FileNotFoundExceptin))]</span>
+        <span class="k">public</span> <span class="k">void</span> <span class="nf">CreateThumbnail</span><span class="p">(</span><span class="kt">string</span> <span class="n">filename</span><span class="p">,</span> <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="kt">int</span> <span class="n">height</span><span class="p">,</span> <span class="n">AlgorithmOptions</span> <span class="n">options</span> <span class="p">=</span> <span class="k">null</span><span class="p">){</span>
+            <span class="c1">// a time-consuming task, eg: resize the image and save it adding a suffix</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">NotImplementedException</span><span class="p">();</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+
+<p>Please note:</p>
+
+<ul>
+<li>These attribute can be specified at method or class level</li>
+<li>Multiple attributes can be applied (exception types are compared with the "is" operator from top to bottom like in catch {} blocks)</li>
+<li>by default jobs are never retried</li>
+</ul><h2>Requirements</h2>
+
+<ul>
+<li>Microsoft .Net Framework 4.0</li>
+<li>Redis</li>
+</ul><h2>License</h2>
+
+<p>(The MIT License)</p>
+
+<p>Copyright (c) 2012 Cinchcast <a href="mailto:contact@cinchcast.com">contact@cinchcast.com</a></p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the 'Software'), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Roque maintained by <a href="https://github.com/benjamine">benjamine</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
