@@ -309,21 +309,24 @@ You can check event subscriptions by running ```roque.exe events```
     Queue _events has 1 event with subscribers
        Acme.MySite.Biz.IUserEvents:UserSignedUp is observed by images, greetings
 
-## Benchmarks
+## Requirements
 
-On a very preliminar and simple benchmark with this conditions:
+- Microsoft .Net Framework 4.0
+- Redis
 
-- 100K messages (jobs/tasks/events).
-- Running Redis, publisher and workers on a single machine.
-- An almost zero-effort job (we just want to test the engine)
+## Installing
 
-We got:
+Roque is available on the official Nuget gallery: https://nuget.org/packages/Roque
 
-- Enqueueing ~ 47.6K jobs per second
-- Dequeueing with 1 worker ~ 4.6K jobs per second
-- Dequeueing with 3 workers ~ 9.9K jobs per second 
+The package will add roque default configuration to your web|app.config.
 
-Note: Dequeuing speed can be increased by adding more workers (and eventually more Redis clusters).Although running multiple workers on same machine doesn't make a lot of sense, a more significant improvement would come from running workers on different machines.
+You can find roque.exe at packages\Roque.x.x.x\tools'. 
+Run ```roque``` without arguments for help.
+
+The same roque.exe can be installed as windows service to run workers:
+
+	installutil roque.exe
+
 
 ## Features
 
@@ -410,10 +413,21 @@ Please note:
 - Multiple attributes can be applied (exception types are compared with the "is" operator from top to bottom like in catch {} blocks)
 - by default jobs are never retried
 
-## Requirements
+## Benchmarks
 
-- Microsoft .Net Framework 4.0
-- Redis
+On a very preliminar and simple benchmark with this conditions:
+
+- 100K messages (jobs/tasks/events).
+- Running Redis, publisher and workers on a single machine.
+- An almost zero-effort job (we just want to test the engine)
+
+We got:
+
+- Enqueueing ~ 47.6K jobs per second
+- Dequeueing with 1 worker ~ 4.6K jobs per second
+- Dequeueing with 3 workers ~ 9.9K jobs per second 
+
+Note: Dequeuing speed can be increased by adding more workers (and eventually more Redis clusters).Although running multiple workers on same machine doesn't make a lot of sense, a more significant improvement would come from running workers on different machines.
 
 ## License
 
