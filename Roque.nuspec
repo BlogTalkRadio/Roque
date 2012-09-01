@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Roque</id>
+    <version>1.0.0</version>
+    <authors>benjamineidelman@blogtalkradio.com</authors>
+    <owners>benjamineidelman@blogtalkradio.com</owners>
+    <licenseUrl>https://raw.github.com/benjamine/Roque/master/MIT-LICENSE.txt</licenseUrl>
+    <projectUrl>http://benjamine.github.com/Roque/</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Roque is a queueing framework. Allows you to create Redis-based distributed async event and work queues by just using plain-old C# methods and events.</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright © 2012 Cinchcast</copyright>
+    <tags>roque queue event work async</tags>
+    <references>
+      <reference file="Roque.Core.dll"/>
+      <reference file="Roque.Redis.dll"/>
+    </references>
+    <dependencies>
+      <dependency id="Castle.Core" version="3.1.0" />
+      <dependency id="Castle.Windsor" version="3.1.0"/>
+      <dependency id="Newtonsoft.Json" version="4.5.8" />
+      <dependency id="BookSleeve" version="1.1.0.8"  />
+      <dependency id="CLAP" version="4.3" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Roque.Core.dll" target="lib\net40"/>
+    <file src="Roque.Redis.dll" target="lib\net40"/>
+    <file src="Roque.Common.Interfaces.dll" target="lib\net40"/>
+    <file src="Roque.Common.Services.dll" target="lib\net40"/>
+
+    <file src="Roque.exe" target="tools"/>
+    <file src="Roque.exe.config" target="tools"/>
+    <file src="Roque.Core.dll" target="tools"/>
+    <file src="Roque.Redis.dll" target="tools"/>
+    <file src="Roque.Common.Interfaces.dll" target="tools"/>
+    <file src="Roque.Common.Services.dll" target="tools"/>
+
+    <file src="web.config.transform" target="content" />
+    <file src="app.config.transform" target="content" />
+  </files>
+</package>

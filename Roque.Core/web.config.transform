@@ -1,13 +1,12 @@
-<?xml version="1.0"?>
+﻿<?xml version="1.0"?>
 <configuration>
   <configSections>
     <section name="roque" type="Cinchcast.Roque.Core.Configuration.Roque, Roque.Core"/>
-    <section name="castle" type="Castle.Windsor.Configuration.AppDomain.CastleSectionHandler,Castle.Windsor" />
   </configSections>
   <roque>
     <queues>
       <!-- define your work queues -->
-      <queue name="main" type="Cinchcast.Roque.Redis.RedisQueue, Roque.Redis">
+      <queue name="default" type="Cinchcast.Roque.Redis.RedisQueue, Roque.Redis">
         <settings>
           <!-- for RedisQueue available settings are host and port -->
           <setting key="host" value="localhost"/>
@@ -20,22 +19,7 @@
         </settings>
       </queue>
     </queues>
-    <workers>
-      <!-- define your workers (on the consumer side) -->
-      <worker name="main" queue="main">
-        <!-- classes that subscribe to events (not necessary when consuming work queues) -->
-        <subscribers>
-          <subscriber type="Cinchcast.Roque.Common.PropertyChangeTracer, Roque.Common.Services"/>
-        </subscribers>
-      </worker>
-    </workers>
   </roque>
-  <castle>
-    <!-- implementations for work queue services (not necessary when consuming events) -->
-    <components>
-      <component service="Cinchcast.Roque.Common.ITrace" type="Cinchcast.Roque.Common.Trace, Roque.Common.Services"/>
-    </components>
-  </castle>
   <system.diagnostics>
     <switches>
       <add name="roque" value="Verbose"/>
