@@ -28,6 +28,12 @@ namespace Cinchcast.Roque.Core.Configuration
             }
         }
 
+        [ConfigurationProperty("defaultQueueType")]
+        public string DefaultQueueType
+        {
+            get { return this["defaultQueueType"] as string; }
+            set { this["defaultQueueType"] = value; }
+        }
 
         [ConfigurationProperty("queues")]
         public QueueCollection Queues

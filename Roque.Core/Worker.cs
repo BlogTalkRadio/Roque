@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Cinchcast.Roque.Core.Configuration;
 
 namespace Cinchcast.Roque.Core
 {
@@ -43,6 +44,8 @@ namespace Cinchcast.Roque.Core
 
         public int TooManyErrorsRetrySeconds { get; set; }
 
+        public bool AutoStart { get; private set; }
+
         private static IDictionary<string, Worker> _Instances = new Dictionary<string, Worker>();
 
         private static WorkerArray _All;
@@ -56,8 +59,11 @@ namespace Cinchcast.Roque.Core
             {
                 if (_All == null)
                 {
-                    _All = new WorkerArray(Configuration.Roque.Settings.Workers.OfType<Configuration.WorkerElement>()
-                        .Select(workerConfig => Worker.Get(workerConfig.Name)).ToArray());
+                    foreach (var workerConfig in Configuration.Roque.Settings.Workers.OfType<Configuration.WorkerElement>())
+                    {
+                        Worker.Get(workerConfig.Name);
+                    }
+                    _All = new WorkerArray(_Instances.Values.ToArray());
                 }
                 return _All;
             }
@@ -109,7 +115,7 @@ namespace Cinchcast.Roque.Core
                         throw new Exception("Worker not found: " + name);
                     }
                     worker = new Worker(workerConfig.Name, Queue.Get(workerConfig.Queue), workerConfig.TooManyErrors, workerConfig.TooManyErrorsRetrySeconds);
-                    _Instances[worker.Name] = worker;
+                    worker.AutoStart = workerConfig.AutoStart;
                 }
                 catch (Exception ex)
                 {
@@ -153,10 +159,15 @@ namespace Cinchcast.Roque.Core
 
         private Worker(string name, Queue queue, int tooManyErrors = 10, int tooManyErrorsRetrySeconds = 30)
         {
+            if (_Instances.ContainsKey(name))
+            {
+                throw new Exception("Worker name already exists: " + name);
+            }
             this.Name = name;
             this.Queue = queue;
             this.TooManyErrors = tooManyErrors;
             this.TooManyErrorsRetrySeconds = tooManyErrorsRetrySeconds;
+            _Instances[Name] = this;
         }
 
         private bool _SubscribersRegistered;

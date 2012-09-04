@@ -32,6 +32,13 @@ namespace Cinchcast.Roque.Core.Configuration
             set { this["queue"] = value; }
         }
 
+        [ConfigurationProperty("autoStart", DefaultValue = false)]
+        public bool AutoStart
+        {
+            get { return (bool)this["autoStart"]; }
+            set { this["autoStart"] = value; }
+        }
+
         [ConfigurationProperty("tooManyErrors", DefaultValue = 10)]
         [IntegerValidator(ExcludeRange = false, MaxValue = 1000, MinValue = 1)]
         public int TooManyErrors

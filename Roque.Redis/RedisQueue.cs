@@ -41,6 +41,8 @@ namespace Cinchcast.Roque.Redis
 
         protected IDictionary<string, string[]> _SubscribersCache = new Dictionary<string, string[]>();
 
+        protected RedisSubscriberConnection _SubscribedToSubscribersChangesChannel;
+
         protected DateTime _SubscribersCacheLastClear = DateTime.Now;
 
         public static TimeSpan DefaultSubscribersCacheExpiration = TimeSpan.FromMinutes(60);
@@ -242,14 +244,11 @@ namespace Cinchcast.Roque.Redis
             }
         }
 
-        private RedisSubscriberConnection _SubscribedToSubscribersChangesChannel;
-
-        protected override void EnqueueJsonEvent(string data, string target, string eventName)
+        public override string[] GetSubscribersForEvent(string target, string eventName)
         {
-            var connection = GetOpenConnection();
-
             string[] subscribers;
             string eventKey = target + ":" + eventName;
+            RedisConnection connection = null;
 
             if (_SubscribedToSubscribersChangesChannel != null &&
                 _SubscribedToSubscribersChangesChannel.State != RedisConnectionBase.ConnectionState.Open &&
@@ -261,6 +260,10 @@ namespace Cinchcast.Roque.Redis
             }
             if (_SubscribedToSubscribersChangesChannel == null)
             {
+                if (connection == null)
+                {
+                    connection = GetOpenConnection();
+                }
                 _SubscribedToSubscribersChangesChannel = connection.GetOpenSubscriberChannel();
                 _SubscribedToSubscribersChangesChannel.Subscribe(GetRedisKey("events:subscriberschanges"), (message, bytes) =>
                 {
@@ -283,17 +286,29 @@ namespace Cinchcast.Roque.Redis
 
             if (!_SubscribersCache.TryGetValue(eventKey, out subscribers))
             {
+                if (connection == null)
+                {
+                    connection = GetOpenConnection();
+                }
                 subscribers = connection.SortedSets.Range(0, GetRedisKey("events:{0}:subscribers", eventKey), 0, -1).Result
                     .Select(set => Encoding.UTF8.GetString(set.Key)).ToArray();
                 _SubscribersCache[eventKey] = subscribers;
             }
+            return subscribers;
+        }
+
+        protected override void EnqueueJsonEvent(string data, string target, string eventName)
+        {
+            var connection = GetOpenConnection();
+
+            var subscribers = GetSubscribersForEvent(target, eventName);
+
             if (subscribers == null || subscribers.Length == 0)
             {
                 if (RoqueTrace.Switch.TraceVerbose)
                 {
                     Trace.TraceInformation(string.Format("No subscriber for this event, enqueue cancelled. Event: {0}:{1}, Queue:{2}", target, eventName, Name));
                 }
-                Thread.Sleep(10000);
             }
             else
             {

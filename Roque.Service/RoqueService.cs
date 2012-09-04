@@ -19,7 +19,7 @@ namespace Cinchcast.Roque.Service
 
         protected override void OnStart(string[] args)
         {
-            Worker.All.Start();
+            Worker.All.Start(onlyAutoStart: true);
         }
 
         protected override void OnStop()

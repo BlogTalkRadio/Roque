@@ -20,7 +20,7 @@ namespace Cinchcast.Roque.Core
         /// <summary>
         /// An exception type on wich the job execution should NOT be retried
         /// </summary>
-        public Type ExceptionType { get; set; }
+        public new Type ExceptionType { get; set; }
 
         public DontRetryOnAttribute(Type exceptionType)
             : base(exceptionType)

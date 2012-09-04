@@ -74,5 +74,10 @@ namespace Cinchcast.Roque.Core
         {
             return null;
         }
+
+        public override string[] GetSubscribersForEvent(string target, string eventName)
+        {
+            return null;
+        }
     }
 }

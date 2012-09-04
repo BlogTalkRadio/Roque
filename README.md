@@ -98,7 +98,7 @@ That's it. You're already enqueuing jobs!, let's set up a worker, hurry up!:
         </queues>
         <workers>
           <!-- a worker poping jobs from "images" queue --> 
-          <worker name="main" queue="images"/>
+          <worker name="images" queue="images" autoStart="true"/>
         </workers>    
       </roque>
       <castle>
@@ -260,14 +260,14 @@ Note: If no subscribers are found for an event, nothing is sent to Redis. You _e
         </queues>
         <workers>
           <!-- a worker poping jobs from "images" queue --> 
-          <worker name="main" queue="images">
+          <worker name="images" queue="images" autoStart="true">
             <subscribers>
                 <!-- all events that ThumbnailCreator subscribes to will be broadcasted to this worker's queue (images) --> 
                 <subscriber type="Acme.Images.ThumbnailCreator, Acme.Images"/>
             </subscribers>
           </worker>
           <!-- a worker poping jobs from "greettings" queue --> 
-          <worker name="main" queue="greetings">
+          <worker name="greetings" queue="greetings" autoStart="true">
             <subscribers>
                 <!-- all events that UserGreeter subscribes to will be broadcasted to this worker's queue (greetings) --> 
                 <subscriber type="Acme.Messaging.UserGreeter, Acme.Messaging"/>

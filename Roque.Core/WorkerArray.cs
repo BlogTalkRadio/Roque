@@ -28,9 +28,15 @@ namespace Cinchcast.Roque.Core
         /// <summary>
         /// Starts all workers
         /// </summary>
-        public void Start()
+        public void Start(bool onlyAutoStart = false)
         {
-            ForEach(worker => worker.Start());
+            ForEach(worker =>
+            {
+                if (!onlyAutoStart || worker.AutoStart)
+                {
+                    worker.Start();
+                }
+            });
         }
 
         /// <summary>

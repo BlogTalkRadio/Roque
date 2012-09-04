@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System.Diagnostics;
 using System.Reflection;
 using Newtonsoft.Json;
 
@@ -37,7 +38,25 @@ namespace Cinchcast.Roque.Core
                 Source = source;
                 SourceType = sourceType;
                 EventInfo = SourceType.GetEvent(eventName);
-
+                if (EventInfo == null)
+                {
+                    if (sourceType.IsInterface)
+                    {
+                        // search event in parent interfaces
+                        foreach (var parentInterface in sourceType.GetInterfaces())
+                        {
+                            EventInfo = parentInterface.GetEvent(eventName);
+                            if (EventInfo != null)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    if (EventInfo == null)
+                    {
+                        throw new Exception(string.Format("Event not found. Type: {0}, EventName: {1}", sourceType.FullName, eventName));
+                    }
+                }
                 var handlerDelegate = Delegate.CreateDelegate(EventInfo.EventHandlerType, this, _OnEventType, true);
 
                 EventInfo.AddEventHandler(source, handlerDelegate);
@@ -45,9 +64,26 @@ namespace Cinchcast.Roque.Core
 
             public void OnEvent(object sender, EventArgs args)
             {
-                var job = Job.Create(SourceType.FullName, EventInfo.Name, args);
-                job.IsEvent = true;
-                Broadcaster.Queue.Enqueue(job);
+                if (Broadcaster.Queue.HasSubscribersForEvent(SourceType.FullName, EventInfo.Name))
+                {
+                    var job = Job.Create(SourceType.FullName, EventInfo.Name, args);
+                    job.IsEvent = true;
+                    if (Broadcaster.EnqueueAsync)
+                    {
+                        Broadcaster.Queue.Enqueue(job);
+                    }
+                    else
+                    {
+                        Broadcaster.Queue.EnqueueAsync(job);
+                    }
+                }
+                else
+                {
+                    if (RoqueTrace.Switch.TraceVerbose)
+                    {
+                        Trace.TraceInformation(string.Format("No subscriber for this event, enqueue cancelled. Event: {0}:{1}, Queue:{2}", SourceType.FullName, EventInfo.Name, Broadcaster.Queue.Name));
+                    }
+                }
             }
         }
 
@@ -110,12 +146,27 @@ namespace Cinchcast.Roque.Core
         /// </summary>
         /// <typeparam name="T">the type or interface to look for events</typeparam>
         /// <param name="source">the instance to attach to</param>
-        public void SubscribeToAll<T>(T source)
+        /// <param name="subscribeToInheritedInterfaces">if true and <typeparamref name="T"/> is an interface, all events in parent interfaces are used too</param>
+        public void SubscribeToAll<T>(T source, bool subscribeToInheritedInterfaces = true)
         {
-            var eventInfos = typeof(T).GetEvents();
-            foreach (var eventInfo in eventInfos)
+            List<Type> types = new List<Type>();
+            types.Add(typeof(T));
+
+            if (typeof(T).IsInterface && subscribeToInheritedInterfaces)
             {
-                Subscribe<T>(source, eventInfo.Name);
+                foreach (var parentInterface in typeof(T).GetInterfaces())
+                {
+                    types.Add(parentInterface);
+                }
+            }
+
+            foreach (var type in types)
+            {
+                var eventInfos = type.GetEvents();
+                foreach (var eventInfo in eventInfos)
+                {
+                    Subscribe<T>(source, eventInfo.Name);
+                }
             }
         }
     }

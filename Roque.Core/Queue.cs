@@ -55,7 +55,8 @@ namespace Cinchcast.Roque.Core
                     {
                         throw new Exception("Queue not found: " + name);
                     }
-                    var queueType = Type.GetType(queueConfig.QueueType);
+                    var queueType = Type.GetType(string.IsNullOrEmpty(queueConfig.QueueType) ?
+                        Configuration.Roque.Settings.DefaultQueueType : queueConfig.QueueType);
                     if (queueType == null)
                     {
                         throw new Exception("Queue type not found: " + queueConfig.QueueType);
@@ -329,5 +330,12 @@ namespace Cinchcast.Roque.Core
 
         public abstract IDictionary<string, string[]> GetSubscribers();
 
+        public bool HasSubscribersForEvent(string target, string eventName)
+        {
+            var subscribers = GetSubscribersForEvent(target, eventName);
+            return subscribers != null && subscribers.Length > 0;
+        }
+
+        public abstract string[] GetSubscribersForEvent(string target, string eventName);
     }
 }

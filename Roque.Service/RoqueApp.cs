@@ -49,7 +49,7 @@ namespace Cinchcast.Roque.Service
         {
             if (string.IsNullOrWhiteSpace(worker))
             {
-                Worker.All.Start();
+                Worker.All.Start(onlyAutoStart: true);
             }
             else
             {

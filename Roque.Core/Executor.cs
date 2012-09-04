@@ -59,7 +59,7 @@ namespace Cinchcast.Roque.Core
                     {
                         Instance = ServiceContainer.Resolve(type);
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         if (ifNotFoundUseEventProxy && type.IsInterface)
                         {
@@ -163,6 +163,22 @@ namespace Cinchcast.Roque.Core
                 if (!Events.TryGetValue(eventName, out eventInfo))
                 {
                     eventInfo = InstanceType.GetEvent(eventName);
+                    if (eventInfo == null && InstanceType.IsInterface)
+                    {
+                        // search event in parent interfaces
+                        foreach (var parentInterface in InstanceType.GetInterfaces())
+                        {
+                            eventInfo = parentInterface.GetEvent(eventName);
+                            if (eventInfo != null)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    if (eventInfo == null)
+                    {
+                        throw new Exception(string.Format("Event not found. Type: {0}, EventName: {1}", InstanceType.FullName, eventName));
+                    }
                     Events[eventName] = eventInfo;
                 }
                 Type eventArgsType = GetEventArgsType(eventInfo);
@@ -187,6 +203,7 @@ namespace Cinchcast.Roque.Core
                     throw;
                 }
 
+                MethodInfo handlerMethod = null;
                 try
                 {
                     if (Instance is EventProxyGenerator.IEventProxy)
@@ -196,7 +213,8 @@ namespace Cinchcast.Roque.Core
                         {
                             foreach (var handler in handlers)
                             {
-                                handler.Method.Invoke(handler.Target, new object[] { Instance, eventArgsValue });
+                                handlerMethod = handler.Method;
+                                handlerMethod.Invoke(handler.Target, new object[] { Instance, eventArgsValue });
                             }
                         }
                         else
@@ -206,7 +224,6 @@ namespace Cinchcast.Roque.Core
                                 Trace.TraceInformation(string.Format("No suscribers found for event: {0}", eventInfo.Name));
                             }
                         }
-
                     }
                     else
                     {
@@ -233,13 +250,12 @@ namespace Cinchcast.Roque.Core
                     {
                         throw jobException;
                     }
-                    var raisedEvent = (Instance == null ? eventInfo : Instance.GetType().GetEvent(eventName));
-                    var retryOn = raisedEvent.GetCustomAttributes(typeof(RetryOnAttribute), true)
+                    var retryOn = handlerMethod.GetCustomAttributes(typeof(RetryOnAttribute), true)
                         .OfType<RetryOnAttribute>()
                         .FirstOrDefault(attr => jobExceptionType.IsAssignableFrom(attr.ExceptionType));
                     if (retryOn == null)
                     {
-                        retryOn = raisedEvent.DeclaringType.GetCustomAttributes(typeof(RetryOnAttribute), true)
+                        retryOn = handlerMethod.DeclaringType.GetCustomAttributes(typeof(RetryOnAttribute), true)
                             .OfType<RetryOnAttribute>()
                             .FirstOrDefault(attr => jobExceptionType.IsAssignableFrom(attr.ExceptionType));
                     }
@@ -253,8 +269,6 @@ namespace Cinchcast.Roque.Core
         }
 
         private IDictionary<string, Target> _Targets = new Dictionary<string, Target>();
-
-        private Assembly[] _Assemblies;
 
         private static Executor _Instance;
 
@@ -272,12 +286,6 @@ namespace Cinchcast.Roque.Core
             {
                 _Instance = value;
             }
-        }
-
-        private bool _SubscribersInConfigRegistered;
-
-        public Executor()
-        {
         }
 
         public void Execute(Job job)
@@ -396,6 +404,7 @@ namespace Cinchcast.Roque.Core
             {
                 return;
             }
+
             var workerConfig = Configuration.Roque.Settings.Workers[worker.Name];
             if (workerConfig == null || workerConfig.Subscribers.Count < 1)
             {
@@ -411,12 +420,7 @@ namespace Cinchcast.Roque.Core
                     {
                         sourceQueue = Queue.DefaultEventQueueName;
                     }
-                    string queue = subscriberConfig.Queue;
-                    if (string.IsNullOrWhiteSpace(queue))
-                    {
-                        queue = worker.Queue.Name;
-                    }
-                    RegisterSubscriber(Activator.CreateInstance(Type.GetType(subscriberConfig.SubscriberType)), sourceQueue, queue);
+                    RegisterSubscriber(Activator.CreateInstance(Type.GetType(subscriberConfig.SubscriberType)), sourceQueue, worker.Queue.Name);
                 }
                 catch (Exception ex)
                 {

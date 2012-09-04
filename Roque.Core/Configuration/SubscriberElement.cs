@@ -32,13 +32,6 @@ namespace Cinchcast.Roque.Core.Configuration
             set { this["sourceQueue"] = value; }
         }
 
-        [ConfigurationProperty("queue")]
-        public string Queue
-        {
-            get { return this["queue"] as string; }
-            set { this["queue"] = value; }
-        }
-
         [ConfigurationProperty("settings")]
         public SettingsCollection Settings
         {
