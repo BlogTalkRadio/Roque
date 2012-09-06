@@ -24,7 +24,16 @@ namespace Cinchcast.Roque.Core
                 outValue = defaultValue;
                 return false;
             }
-            outValue = (TOutputValue)Convert.ChangeType(value, typeof(TOutputValue));
+
+            var type = typeof (TOutputValue);
+
+            if (type.IsNullable())
+                type = Nullable.GetUnderlyingType(type);
+
+            if (!typeof(IConvertible).IsAssignableFrom(type))
+                throw new Exception("The type does not implement the IConvertible interface");
+
+            outValue = (TOutputValue)Convert.ChangeType(value, type);
             return true;
         }
 
@@ -35,7 +44,15 @@ namespace Cinchcast.Roque.Core
 
         public static TOutputValue Get<TOutputValue, TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key)
         {
-            return (TOutputValue)Convert.ChangeType(dict[key], typeof(TOutputValue));
+            var type = typeof(TOutputValue);
+
+            if (type.IsNullable())
+                type = Nullable.GetUnderlyingType(type);
+
+            if (!typeof(IConvertible).IsAssignableFrom(type))
+                throw new Exception("The type does not implement the IConvertible interface");
+
+            return (TOutputValue)Convert.ChangeType(dict[key], type);
         }
 
         public static TOutputValue Get<TOutputValue, TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TOutputValue defaultValue)
