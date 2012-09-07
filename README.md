@@ -316,17 +316,55 @@ You can check event subscriptions by running ```roque.exe events```
 
 ## Installing
 
+### Producer side (your application)
+
 Roque is available on the official Nuget gallery: https://nuget.org/packages/Roque
 
 The package will add roque default configuration to your web|app.config.
 
-You can find roque.exe at packages\Roque.x.x.x\tools'. 
+### Consumer side (workers)
+
+When you install Roque nuget package you can find roque.exe at \packages\Roque.x.x.x\tools'.
+To install a worker:
+
+- Copy the contents of \tools folder to another location named accordingly to your type of worker (eg. ```C:\Services\ImageProcessorService```)
+- On that folder, modify roque.exe.config to declare the queues, workers and subscribers you want to run.
+- Copy to the same folder all assemblies required for the workers you declared. (eg. ```ImageProcessor.dll```)
+
+Not you can run Roque in 3 ways:
+
+#### 1. Console
+
 Run ```roque``` without arguments for help.
+
+#### 2. Windows Service
 
 The same roque.exe can be installed as windows service to run workers:
 
 	installutil roque.exe
 
+Each instance of roque can start multiple workers using thread. Though to get more control and separation between them it's recommended to use separate windows service instances for them.
+
+To install multiple instances of roque service you have to use the [SC](http://support.microsoft.com/kb/251192) command:
+
+	sc create [service name] binPath=<full\path\to\a\roque.exe>
+
+#### 3. Embedded in your app
+
+You can start Roque workers on your app (for example if you are interested in 2-way messaging):
+
+``` csharp
+
+	// run a worker declared in config
+	Worker.Get("myworker").Start();
+
+	// run all workers declared to autostart in config
+	Worker.All.Start(onlyAutoStart: true);
+
+	// stop all workers
+	Worker.All.Stop();
+
+```
 
 ## Features
 

@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roque.Core", "Roque.Core\Roque.Core.csproj", "{C84914DE-0953-4A4D-AA48-AA6041691B78}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roque.Redis", "Roque.Redis\Roque.Redis.csproj", "{49C2F079-2505-4763-932E-47E5DF1BB958}"

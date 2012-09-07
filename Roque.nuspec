@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Roque</id>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <authors>benjamineidelman@blogtalkradio.com</authors>
     <owners>benjamineidelman@blogtalkradio.com</owners>
     <licenseUrl>https://raw.github.com/benjamine/Roque/master/MIT-LICENSE.txt</licenseUrl>
@@ -25,18 +25,28 @@
     </dependencies>
   </metadata>
   <files>
+    <!-- libraries required on producer side-->
     <file src="Roque.Core.dll" target="lib\net40"/>
     <file src="Roque.Redis.dll" target="lib\net40"/>
     <file src="Roque.Common.Interfaces.dll" target="lib\net40"/>
     <file src="Roque.Common.Services.dll" target="lib\net40"/>
 
+    <!-- windows service and console app -->
     <file src="Roque.exe" target="tools"/>
     <file src="Roque.exe.config" target="tools"/>
     <file src="Roque.Core.dll" target="tools"/>
     <file src="Roque.Redis.dll" target="tools"/>
     <file src="Roque.Common.Interfaces.dll" target="tools"/>
     <file src="Roque.Common.Services.dll" target="tools"/>
+    
+    <!-- required dependencies for roque.exe -->
+    <file src="Newtonsoft.Json.dll" target="tools"/>
+    <file src="CLAP.dll" target="tools"/>
+    <file src="Castle.Core.dll" target="tools"/>
+    <file src="Castle.Windsor.dll" target="tools"/>
+    <file src="BookSleeve.dll" target="tools"/>
 
+    <!-- config transforms with example configuration -->
     <file src="web.config.transform" target="content" />
     <file src="app.config.transform" target="content" />
   </files>
