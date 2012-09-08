@@ -364,11 +364,12 @@ This allows Roque to:
       <configSections>
         <section name="roque" type="Cinchcast.Roque.Core.Configuration.Roque, Roque.Core"/>
       </configSections>
+
+		<!-- restartOnFileChanges: restart if any *.config or *.dll change, default value is true -->
+		<!-- restartIfMemorySizeIsMoreThan: restart if memory size exceeds 20MB, default value is 0 = no monitoring -->
       <roque 
-		<!-- restart if any *.config or *.dll change, default value is true -->
-		restartOnFileChanges="true"
-		<!-- restart if memory size exceeds 20MB, default value is 0 = no monitoring -->
-		restartIfMemorySizeIsMoreThan="20971520"
+			restartOnFileChanges="true"
+			restartIfMemorySizeIsMoreThan="20971520"
 		>
 			<!-- your queues and workers here -->
       </roque>
