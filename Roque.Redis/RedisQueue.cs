@@ -76,6 +76,11 @@ namespace Cinchcast.Roque.Redis
                         port = Settings.Get("port", 6379);
                         EnqueueTimeoutSeconds = Settings.Get("enqueueTimeoutSeconds", 5);
 
+                        if (Roque.Core.RoqueTrace.Switch.TraceInfo)
+                        {
+                            Trace.TraceInformation(string.Format("[REDIS] connecting to {0}:{1}", host, port));
+                        }
+
                         _Connection = new RedisConnection(host, port);
                         var openAsync = _Connection.Open();
                         _Connection.Wait(openAsync);

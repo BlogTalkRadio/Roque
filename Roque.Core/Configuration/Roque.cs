@@ -35,6 +35,20 @@ namespace Cinchcast.Roque.Core.Configuration
             set { this["defaultQueueType"] = value; }
         }
 
+        [ConfigurationProperty("restartIfMemorySizeIsMoreThan")]
+        public long RestartIfMemorySizeIsMoreThan
+        {
+            get { return (long)this["restartIfMemorySizeIsMoreThan"]; }
+            set { this["restartIfMemorySizeIsMoreThan"] = value; }
+        }
+
+        [ConfigurationProperty("restartOnFileChanges", DefaultValue = true)]
+        public bool RestartOnFileChanges
+        {
+            get { return (bool)this["restartOnFileChanges"]; }
+            set { this["restartOnFileChanges"] = value; }
+        }
+
         [ConfigurationProperty("queues")]
         public QueueCollection Queues
         {

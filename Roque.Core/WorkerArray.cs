@@ -52,6 +52,15 @@ namespace Cinchcast.Roque.Core
             });
         }
 
+        /// <summary>
+        /// Request stop of all workers, and blocks until they are all stopped.
+        /// </summary>
+        /// <returns></returns>
+        public void StopAndWait()
+        {
+            Stop().Wait();
+        }
+
         public void ForEach(Action<Worker> action)
         {
             foreach (var worker in _Workers)

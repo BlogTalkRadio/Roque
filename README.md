@@ -349,6 +349,33 @@ To install multiple instances of roque service you have to use the [SC](http://s
 
 	sc create [service name] binPath=<full\path\to\a\roque.exe>
 
+Roque.exe will run your workers on a separate [AppDomain](http://msdn.microsoft.com/en-us/library/System.AppDomain.aspx).
+
+This allows Roque to:
+
+- Automatically restart when roque.exe.config or any dll changes. (acheiving a "hot deploy" similar to Asp.Net websites)
+- Monitor memory consumption to unload the AppDomain and restart when memory size exceeds a limit. Memory is checked after a GC.Collect() every minute. (This is useful if you want to protect your Roque Service from memory leaks in any worker subscriber or job implementation).
+
+
+``` xml
+
+    <?xml version="1.0"?>
+    <configuration>
+      <configSections>
+        <section name="roque" type="Cinchcast.Roque.Core.Configuration.Roque, Roque.Core"/>
+      </configSections>
+      <roque 
+		<!-- restart if any *.config or *.dll change, default value is true -->
+		restartOnFileChanges="true"
+		<!-- restart if memory size exceeds 20MB, default value is 0 = no monitoring -->
+		restartIfMemorySizeIsMoreThan="20971520"
+		>
+			<!-- your queues and workers here -->
+      </roque>
+    </configuration>
+```
+
+
 #### 3. Embedded in your app
 
 You can start Roque workers on your app (for example if you are interested in 2-way messaging):
@@ -366,6 +393,27 @@ You can start Roque workers on your app (for example if you are interested in 2-
 
 ```
 
+or you can use a WorkerHost (WorkerHost run workers on a separate AppDomain and allows you to monitor memory size, and .config changes. If your restart it it'll unload AppDomain and start a new one):
+
+``` csharp
+
+	var host = new WorkerHost();
+
+	// run a worker declared in config
+	host.Start("myworker");
+	host.Stop();
+
+	// run all workers declared to autostart in config
+	host.Start();
+
+	// stop and restart all workers in host
+	host.Restart();
+
+	// stop all workers in host
+	host.Stop();
+
+```
+
 ## Features
 
 - Queues are persisted on Redis. Redis is *fast*, scalable and simple to set up. (Others storages can be plugged in)
@@ -379,6 +427,9 @@ You can start Roque workers on your app (for example if you are interested in 2-
 - Configure retrying rules (time to wait before retrying, max number of times) based on Exception types.
 - Minimal latency. By using Redis no polling is done, jobs are pushed immediately to the first available worker. pushing and popping is *fast* (Redis LPUSH / BRPOPLPUSH based).
 - Monitor queue status, and check when queues are getting too long (need more workers?), or jobs are getting too old (workers are down or disconnected?).
+- Run workers on a separate AppDomain.
+  - Hot deploy. Roque restarts workers automatically if any *.config or *.dll is changed.
+  - Memory size monitoring. Roque can restart automatically when memory size consumed by workers exceeds a limit (detect and prevent memory leaks).
 - Supports 2 message queue patterns:
   - Work queues (by invoking methods). eg. request the execution of a job asynchronously.
   - Message broadcasting (pub/sub) in front of work queues (by raising events). eg. notify multiple subscriptors that perform jobs on specific events.

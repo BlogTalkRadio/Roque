@@ -12,6 +12,8 @@ namespace Cinchcast.Roque.Service
 {
     public partial class RoqueService : ServiceBase
     {
+        private WorkerHost _Host;
+
         public RoqueService()
         {
             InitializeComponent();
@@ -19,12 +21,16 @@ namespace Cinchcast.Roque.Service
 
         protected override void OnStart(string[] args)
         {
-            Worker.All.Start(onlyAutoStart: true);
+            if (_Host == null)
+            {
+                _Host = new WorkerHost();
+            }
+            _Host.Start();
         }
 
         protected override void OnStop()
         {
-            Worker.All.Stop();
+            _Host.Stop();
         }
     }
 }

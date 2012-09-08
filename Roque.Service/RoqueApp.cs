@@ -47,19 +47,13 @@ namespace Cinchcast.Roque.Service
         [Verb(Description = "Run all workers in config")]
         private static void Work([CLAP.Description("worker to start, or none to start all")]string worker)
         {
-            if (string.IsNullOrWhiteSpace(worker))
-            {
-                Worker.All.Start(onlyAutoStart: true);
-            }
-            else
-            {
-                Worker.Get(worker).Start();
-            }
+            var host = new WorkerHost();
+            host.Start(worker);
+            Console.WriteLine();
             Console.WriteLine("PRESS ANY KEY TO STOP");
             Console.WriteLine();
             Console.ReadKey(true);
-            Console.WriteLine("Stopping...");
-            Worker.All.Stop().Wait();
+            host.Stop();
             Console.WriteLine("Goodbye!");
         }
 

@@ -132,7 +132,7 @@ namespace Cinchcast.Roque.Core
                     var jobException = ex.InnerException;
                     if (RoqueTrace.Switch.TraceError)
                     {
-                        Trace.TraceError(string.Format("Error invoking job target: {0}", jobException.Message));
+                        Trace.TraceError(string.Format("Error invoking job target: {0}\n\n{1}", jobException.Message, jobException));
                     }
                     var jobExceptionType = jobException.GetType();
                     if (jobException is ShouldRetryException)
@@ -142,12 +142,12 @@ namespace Cinchcast.Roque.Core
                     var invokedMethod = (Instance == null ? method : Instance.GetType().GetMethod(methodName));
                     var retryOn = invokedMethod.GetCustomAttributes(typeof(RetryOnAttribute), true)
                         .OfType<RetryOnAttribute>()
-                        .FirstOrDefault(attr => jobExceptionType.IsAssignableFrom(attr.ExceptionType));
+                        .FirstOrDefault(attr => attr.ExceptionType.IsAssignableFrom(jobExceptionType));
                     if (retryOn == null)
                     {
                         retryOn = invokedMethod.DeclaringType.GetCustomAttributes(typeof(RetryOnAttribute), true)
                             .OfType<RetryOnAttribute>()
-                            .FirstOrDefault(attr => jobExceptionType.IsAssignableFrom(attr.ExceptionType));
+                            .FirstOrDefault(attr => attr.ExceptionType.IsAssignableFrom(jobExceptionType));
                     }
                     if (retryOn != null && !(retryOn is DontRetryOnAttribute))
                     {
@@ -243,7 +243,7 @@ namespace Cinchcast.Roque.Core
                     var jobException = ex.InnerException;
                     if (RoqueTrace.Switch.TraceError)
                     {
-                        Trace.TraceError(string.Format("Error invoking job target: {0}", jobException.Message));
+                        Trace.TraceError(string.Format("Error invoking event subscriber: {0}\n\n{1}", jobException.Message, jobException));
                     }
                     var jobExceptionType = jobException.GetType();
                     if (jobException is ShouldRetryException)
@@ -252,12 +252,12 @@ namespace Cinchcast.Roque.Core
                     }
                     var retryOn = handlerMethod.GetCustomAttributes(typeof(RetryOnAttribute), true)
                         .OfType<RetryOnAttribute>()
-                        .FirstOrDefault(attr => jobExceptionType.IsAssignableFrom(attr.ExceptionType));
+                        .FirstOrDefault(attr => attr.ExceptionType.IsAssignableFrom(jobExceptionType));
                     if (retryOn == null)
                     {
                         retryOn = handlerMethod.DeclaringType.GetCustomAttributes(typeof(RetryOnAttribute), true)
                             .OfType<RetryOnAttribute>()
-                            .FirstOrDefault(attr => jobExceptionType.IsAssignableFrom(attr.ExceptionType));
+                            .FirstOrDefault(attr => attr.ExceptionType.IsAssignableFrom(jobExceptionType));
                     }
                     if (retryOn != null && !(retryOn is DontRetryOnAttribute))
                     {

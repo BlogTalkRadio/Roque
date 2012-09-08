@@ -65,6 +65,7 @@
     <Compile Include="Configuration\WorkerElement.cs" />
     <Compile Include="DontRetryOnAttribute.cs" />
     <Compile Include="EventProxyGenerator.cs" />
+    <Compile Include="FileWatcher.cs" />
     <Compile Include="QueueArray.cs" />
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="InMemoryQueue.cs" />
@@ -77,6 +78,7 @@
     <Compile Include="Executor.cs" />
     <Compile Include="RetryOnAttribute.cs" />
     <Compile Include="RoqueTrace.cs" />
+    <Compile Include="WorkerHost.cs" />
     <Compile Include="ShouldRetryException.cs" />
     <Compile Include="Worker.cs" />
     <Compile Include="WorkerArray.cs" />

@@ -196,7 +196,7 @@ namespace Cinchcast.Roque.Core
                 State = WorkerState.Waiting;
                 if (RoqueTrace.Switch.TraceInfo)
                 {
-                    Trace.TraceInformation("Worker started: " + Name);
+                    Trace.TraceInformation("Worker {0} started. AppDomain: {1}", Name, AppDomain.CurrentDomain.FriendlyName);
                 }
 
                 bool attemptWipResume = true;
@@ -208,6 +208,7 @@ namespace Cinchcast.Roque.Core
 
                 Stopwatch stopwatchBatchWork = null;
                 Stopwatch stopwatchLastDequeue = null;
+                IsStopRequested = false;
 
                 while (!IsStopRequested)
                 {
@@ -348,6 +349,7 @@ namespace Cinchcast.Roque.Core
                     }
                     firstTime = false;
                 }
+                IsStopRequested = false;
             }
             catch (Exception ex)
             {
@@ -388,7 +390,7 @@ namespace Cinchcast.Roque.Core
         {
             if (_CurrentWork == null || _CurrentWork.IsCompleted)
             {
-                return new Task(() => { });
+                return Task.Factory.StartNew(() => { });
             }
             if (!IsStopRequested)
             {
