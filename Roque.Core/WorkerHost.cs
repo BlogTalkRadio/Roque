@@ -83,7 +83,11 @@ namespace Cinchcast.Roque.Service
         {
             if (AppDomain == null)
             {
-                AppDomain = AppDomain.CreateDomain("RoqueWorkers" + Guid.NewGuid().ToString());
+                var appDomainSetup = new AppDomainSetup()
+                    {
+                        ShadowCopyFiles = true.ToString()
+                    };
+                AppDomain = AppDomain.CreateDomain("RoqueWorkers" + Guid.NewGuid(), null, appDomainSetup);
             }
             if (_Process != null || _Stopping)
             {

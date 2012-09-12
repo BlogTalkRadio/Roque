@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Reflection;
 using CLAP;
 using CLAP.Validation;
 using Cinchcast.Roque.Common;
@@ -192,6 +193,8 @@ namespace Cinchcast.Roque.Service
         {
             // this is an empty handler that prints
             // the automatic help string to the console.
+            var name = Assembly.GetAssembly(typeof (Roque.Core.Queue)).GetName();
+            Console.WriteLine(string.Format("Roque v{1}", name.Version));
             Console.WriteLine(help);
         }
     }

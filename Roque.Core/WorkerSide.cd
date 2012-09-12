@@ -3,7 +3,7 @@
   <Class Name="Cinchcast.Roque.Core.Queue" Collapsed="true">
     <Position X="1.25" Y="0.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AABACAEAACAEAIJCAAEAADQIAAAABEAggMAAAAAAABA=</HashCode>
+      <HashCode>AgBACAEAACAEAIJCAAEAADQIAAAABEAgkMAAAAAAABA=</HashCode>
       <FileName>Queue.cs</FileName>
     </TypeIdentifier>
   </Class>
@@ -23,15 +23,8 @@
     <Compartments>
       <Compartment Name="Private" Collapsed="true" />
     </Compartments>
-    <NestedTypes>
-      <Enum Name="Cinchcast.Roque.Core.Worker.WorkerState" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>Worker.cs</NewMemberFileName>
-        </TypeIdentifier>
-      </Enum>
-    </NestedTypes>
     <TypeIdentifier>
-      <HashCode>AAgAKACAACIAgABAAAKAAASCQAAAAECAIIAABAAEAAA=</HashCode>
+      <HashCode>AAgAKACAACIAgABAAAKAAASCQAAAAECAIoAABAAEAAA=</HashCode>
       <FileName>Worker.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -40,17 +33,25 @@
   </Class>
   <Class Name="Cinchcast.Roque.Core.Executor" Collapsed="true">
     <Position X="6.25" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAQAAAAAEAAAIAQAAQAEIAAIAAAQAAAAACAAAAAAAAA=</HashCode>
+      <FileName>Executor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Cinchcast.Roque.Service.WorkerHost" Collapsed="true">
+    <Position X="8" Y="0.75" Width="1.5" />
     <NestedTypes>
-      <Class Name="Cinchcast.Roque.Core.Executor.Target" Collapsed="true">
+      <Class Name="Cinchcast.Roque.Service.WorkerHost.Process" Collapsed="true">
         <TypeIdentifier>
-          <NewMemberFileName>Executor.cs</NewMemberFileName>
+          <NewMemberFileName>WorkerHost.cs</NewMemberFileName>
         </TypeIdentifier>
       </Class>
     </NestedTypes>
     <TypeIdentifier>
-      <HashCode>IAQAAAAAEAAAIAQAAQAEIAAIABAQgAAAACAAAAAAAAA=</HashCode>
-      <FileName>Executor.cs</FileName>
+      <HashCode>EAAAABAAACAAAAAAAQAMAAAAAAAgAAAAIgAAECAAAAA=</HashCode>
+      <FileName>WorkerHost.cs</FileName>
     </TypeIdentifier>
+    <Lollipop Position="0.2" />
   </Class>
   <Font Name="Segoe UI" Size="9" />
 </ClassDiagram>

@@ -17,18 +17,21 @@ namespace Cinchcast.Roque.Core
             {
                 IncludeSubdirectories = false,
                 Filter = "*.dll",
-                NotifyFilter = NotifyFilters.LastWrite
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime
             };
             var watcherConfigs = new FileSystemWatcher(file.Directory.FullName)
             {
                 IncludeSubdirectories = false,
                 Filter = "*.config",
-                NotifyFilter = NotifyFilters.LastWrite
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.CreationTime
             };
 
             bool fired = false;
 
-            FileSystemEventHandler onFileChange = (sender, ea) =>
+            FileSystemEventHandler onFileChange = null;
+            RenamedEventHandler onFileRename = null;
+
+            Action<FileSystemEventArgs> onChange = (ea) =>
                 {
                     if (fired && onlyOnce)
                     {
@@ -39,6 +42,17 @@ namespace Cinchcast.Roque.Core
                     {
                         watcherDlls.EnableRaisingEvents = false;
                         watcherConfigs.EnableRaisingEvents = false;
+
+                        watcherDlls.Created -= onFileChange;
+                        watcherDlls.Changed -= onFileChange;
+                        watcherDlls.Deleted -= onFileChange;
+                        watcherDlls.Renamed -= onFileRename;
+
+                        watcherConfigs.Created -= onFileChange;
+                        watcherConfigs.Changed -= onFileChange;
+                        watcherConfigs.Deleted -= onFileChange;
+                        watcherConfigs.Renamed -= onFileRename;
+
                         watcherDlls.Dispose();
                         watcherConfigs.Dispose();
                     }
@@ -46,8 +60,24 @@ namespace Cinchcast.Roque.Core
                     action();
                 };
 
+            onFileChange = (sender, ea) =>
+                {
+                    onChange(ea);
+                };
+            onFileRename = (sender, ea) =>
+                {
+                    onChange(ea);
+                };
+
+            watcherDlls.Created += onFileChange;
             watcherDlls.Changed += onFileChange;
+            watcherDlls.Deleted += onFileChange;
+            watcherDlls.Renamed += onFileRename;
+
+            watcherConfigs.Created += onFileChange;
             watcherConfigs.Changed += onFileChange;
+            watcherConfigs.Deleted += onFileChange;
+            watcherConfigs.Renamed += onFileRename;
 
             watcherDlls.EnableRaisingEvents = true;
             watcherConfigs.EnableRaisingEvents = true;
