@@ -64,7 +64,22 @@ namespace Cinchcast.Roque.Core
 
             public void OnEvent(object sender, EventArgs args)
             {
-                if (Broadcaster.Queue.HasSubscribersForEvent(SourceType.FullName, EventInfo.Name))
+                bool hasSubscribers;
+                try
+                {
+                    hasSubscribers = Broadcaster.Queue.HasSubscribersForEvent(SourceType.FullName, EventInfo.Name);
+                }
+                catch (Exception ex)
+                {
+                    // error getting list of subscribers, we don't know but there might be subscribers
+                    hasSubscribers = true;
+                    if (RoqueTrace.Switch.TraceError)
+                    {
+                        Trace.TraceError(string.Format("Error looking for subscribers to this event: {0}. Event: {1}:{2}, Queue:{3}", ex.Message, SourceType.FullName, EventInfo.Name, Broadcaster.Queue.Name));
+                    }
+                }
+
+                if (hasSubscribers)
                 {
                     var job = Job.Create(SourceType.FullName, EventInfo.Name, args);
                     job.IsEvent = true;
