@@ -6,6 +6,7 @@
 
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Cinchcast.Roque.Core.Configuration;
@@ -196,7 +197,8 @@ namespace Cinchcast.Roque.Core
                 State = WorkerState.Waiting;
                 if (RoqueTrace.Switch.TraceInfo)
                 {
-                    Trace.TraceInformation("Worker {0} started. AppDomain: {1}", Name, AppDomain.CurrentDomain.FriendlyName);
+                    var assemblyName = Assembly.GetAssembly(typeof(Worker)).GetName();
+                    Trace.TraceInformation("Worker {0} started. Roque v{1}. AppDomain: {2}", Name, assemblyName.Version, AppDomain.CurrentDomain.FriendlyName);
                 }
 
                 bool attemptWipResume = true;

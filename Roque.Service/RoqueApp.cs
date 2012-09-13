@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using CLAP;
 using CLAP.Validation;
@@ -188,13 +189,38 @@ namespace Cinchcast.Roque.Service
             }
         }
 
+        [Verb(Description = "Copy roque binaries to another folder")]
+        private static void CopyBinaries([CLAP.Description("target folder, by default is current folder")]string path)
+        {
+            var sourceDir = new DirectoryInfo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+
+            string targetPath = path;
+            if (string.IsNullOrWhiteSpace(targetPath))
+            {
+                targetPath = ".";
+            }
+            targetPath = Path.GetFullPath(targetPath);
+            Console.WriteLine("Copying binaries to: " + targetPath);
+            var targetDir = new DirectoryInfo(targetPath);
+            foreach (var file in sourceDir.GetFiles())
+            {
+                string extension = file.Extension.ToLowerInvariant();
+                if (!extension.EndsWith(".config") && !extension.EndsWith("log") && !extension.EndsWith(".transform"))
+                {
+                    string targetFile = Path.Combine(targetDir.FullName, file.Name);
+                    file.CopyTo(targetFile, true);
+                    Console.WriteLine("  " + file.Name + " [OK]");
+                }
+            }
+        }
+
         [Empty, Help]
         public static void Help(string help)
         {
             // this is an empty handler that prints
             // the automatic help string to the console.
-            var name = Assembly.GetAssembly(typeof (Roque.Core.Queue)).GetName();
-            Console.WriteLine(string.Format("Roque v{1}", name.Version));
+            var name = Assembly.GetAssembly(typeof(RoqueApp)).GetName();
+            Console.WriteLine(string.Format("Roque v{0}", name.Version));
             Console.WriteLine(help);
         }
     }
