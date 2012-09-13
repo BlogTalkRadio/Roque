@@ -8,7 +8,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Management;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.ServiceProcess;
 using CLAP;
 using CLAP.Validation;
 using Cinchcast.Roque.Common;
@@ -202,16 +205,108 @@ namespace Cinchcast.Roque.Service
             targetPath = Path.GetFullPath(targetPath);
             Console.WriteLine("Copying binaries to: " + targetPath);
             var targetDir = new DirectoryInfo(targetPath);
+
+            try
+            {
+                CopyBinaryFiles(sourceDir, targetDir);
+            }
+            catch (IOException ex)
+            {
+                if (IsSharingViolation(ex))
+                {
+                    Console.WriteLine("[ERROR] " + ex.Message);
+                    string targetExe = Path.Combine(targetPath, "roque.exe").ToLowerInvariant();
+                    var service = ServiceController.GetServices().FirstOrDefault(svc => svc.Status != ServiceControllerStatus.Stopped && GetPathOfService(svc.ServiceName).ToLowerInvariant() == targetExe);
+                    if (service != null)
+                    {
+                        Console.WriteLine("Roque binaries on this folder are running as service " + service.ServiceName);
+                        Console.WriteLine("Stopping to update...");
+                        service.Stop();
+                        Console.WriteLine("Stopped");
+                        CopyBinaryFiles(sourceDir, targetDir);
+                        Console.WriteLine("Binaries updated, Starting...");
+                        service.Start();
+                        Console.WriteLine("Started");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Check that roque is stopped and retry");
+                    }
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+
+        private static void CopyBinaryFiles(DirectoryInfo sourceDir, DirectoryInfo targetDir)
+        {
             foreach (var file in sourceDir.GetFiles())
             {
                 string extension = file.Extension.ToLowerInvariant();
                 if (!extension.EndsWith(".config") && !extension.EndsWith("log") && !extension.EndsWith(".transform"))
                 {
                     string targetFile = Path.Combine(targetDir.FullName, file.Name);
-                    file.CopyTo(targetFile, true);
-                    Console.WriteLine("  " + file.Name + " [OK]");
+                    if (!File.Exists(targetFile))
+                    {
+                        // new file, just copy
+                        file.CopyTo(targetFile, true);
+                        Console.WriteLine("  [CREATED] " + file.Name);
+                    }
+                    else
+                    {
+                        FileVersionInfo sourceVersion = FileVersionInfo.GetVersionInfo(file.FullName);
+                        FileVersionInfo targetVersion = FileVersionInfo.GetVersionInfo(targetFile);
+                        if (string.IsNullOrEmpty(sourceVersion.ProductVersion) || string.IsNullOrEmpty(targetVersion.ProductVersion))
+                        {
+                            // non-versioned file, check for modification date
+                            if (file.LastWriteTimeUtc != File.GetLastWriteTimeUtc(targetFile))
+                            {
+                                file.CopyTo(targetFile, true);
+                                Console.WriteLine("  [UPDATED] " + file.Name);
+                            }
+                            else
+                            {
+                                Console.WriteLine("  [UP TO DATE] " + file.Name);
+                            }
+                        }
+                        else
+                        {
+                            if (sourceVersion.ProductVersion != targetVersion.ProductVersion)
+                            {
+                                // different versions, overwrite
+                                file.CopyTo(targetFile, true);
+                                Console.WriteLine("  [UPDATED] " + file.Name + " " + targetVersion.ProductVersion + " => " + sourceVersion.ProductVersion);
+                            }
+                            else
+                            {
+                                // updated, ignore
+                                Console.WriteLine("  [UP TO DATE] " + file.Name + " " + targetVersion.ProductVersion);
+                            }
+                        }
+                    }
                 }
             }
+        }
+
+        private static bool IsSharingViolation(IOException ex)
+        {
+            return -2147024864 == Marshal.GetHRForException(ex);
+        }
+
+        public static string GetPathOfService(string serviceName)
+        {
+            WqlObjectQuery wqlObjectQuery = new WqlObjectQuery(string.Format("SELECT * FROM Win32_Service WHERE Name = '{0}'", serviceName));
+            ManagementObjectSearcher managementObjectSearcher = new ManagementObjectSearcher(wqlObjectQuery);
+            ManagementObjectCollection managementObjectCollection = managementObjectSearcher.Get();
+
+            foreach (ManagementObject managementObject in managementObjectCollection)
+            {
+                return managementObject.GetPropertyValue("PathName").ToString();
+            }
+
+            return null;
         }
 
         [Empty, Help]

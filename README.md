@@ -337,17 +337,35 @@ Not you can run Roque in 3 ways:
 
 Run ```roque``` without arguments for help.
 
+You can open a console on your worker project output folder (eg. bin/Debug) and run:
+
+        roque copybinaries
+
+This command will copy (or update as needed) all roque binaries into current folder, so now you can run:
+
+        # add /debug to attach debugger
+        roque work
+
+You can find roque.exe on /package/Roque.1.x.x/tools
+
 #### 2. Windows Service
 
-The same roque.exe can be installed as windows service to run workers:
+The same roque.exe can be installed as windows service to run workers. To create a new instance of a roque worker follow these steps:
 
-	installutil roque.exe
+1. Create a target folder (eg. c:\Services\RoqueWorkers\ExampleWorker).
 
-Each instance of roque can start multiple workers using thread. Though to get more control and separation between them it's recommended to use separate windows service instances for them.
+2. Copy roque binaries into that folder:
 
-To install multiple instances of roque service you have to use the [SC](http://support.microsoft.com/kb/251192) command:
+        roque copybinaries
 
-	sc create [service name] binPath=<full\path\to\a\roque.exe>
+3. Copy your roque.exe.config and all the needed assemblies on the same folder (assemblies containing services and/or subscribers)
+
+4. create windows service using windows [SC](http://support.microsoft.com/kb/251192) command:
+
+
+	    sc create [service name] binPath=<full\path\to\roque.exe>
+
+    Note: Each instance of roque can start multiple workers using thread. Though to get more control and separation between them it's recommended to use separate windows service instances for them.
 
 Roque.exe will run your workers on a separate [AppDomain](http://msdn.microsoft.com/en-us/library/System.AppDomain.aspx).
 
@@ -376,6 +394,31 @@ This allows Roque to:
     </configuration>
 ```
 
+##### Updating
+
+Updating an instance is as simple as repeating step 3 above (overwrite config and assemblies).
+Roque will detect any change on .config or .dlls and reload automatically. 
+
+If you need to update Roque version you can repeat step 2:
+
+        roque copybinaries
+
+These will only update files when a new version is available, and if binaries are running as a service it will try to stop the service, update binaries and start service back again.
+
+        [ERROR] The process cannot access the file 'C:\code\BTR\devmain\dlls\BTRRoqueKissMetrics\bin\Local\Roque.Core.dll' because it is being used by another process.
+        Roque binaries on this folder are running as service BTRROQUEEXAMPLE1
+        Stopping to update...
+        Stopped
+            ....
+          [UPDATED] Roque.exe 1.0.6.0 => 1.0.7.0
+        Binaries updated, Starting...
+        Started
+
+If updating requires to restart the service you will need admin privileges.
+
+Note: when stopping Roque it will always wait for jobs in progress to complete.
+
+Tip: For more detailed instructions you can include a copy of [README.worker.md](https://github.com/benjamine/Roque/blob/master/Roque.Service/WorkerUtils/README.worker.md) file in your worker projects.
 
 #### 3. Embedded in your app
 
