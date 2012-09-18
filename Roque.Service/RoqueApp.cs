@@ -193,7 +193,7 @@ namespace Cinchcast.Roque.Service
         }
 
         [Verb(Description = "Copy roque binaries to another folder")]
-        private static void CopyBinaries([CLAP.Description("target folder, by default is current folder")]string path)
+        private static void CopyBinaries([CLAP.Description("target folder, by default is current folder")]string path, [CLAP.Description("overwrite files, even if target is up to date")] bool force = false)
         {
             var sourceDir = new DirectoryInfo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
 
@@ -208,7 +208,7 @@ namespace Cinchcast.Roque.Service
 
             try
             {
-                CopyBinaryFiles(sourceDir, targetDir);
+                CopyBinaryFiles(sourceDir, targetDir, force);
             }
             catch (IOException ex)
             {
@@ -240,7 +240,7 @@ namespace Cinchcast.Roque.Service
             }
         }
 
-        private static void CopyBinaryFiles(DirectoryInfo sourceDir, DirectoryInfo targetDir)
+        private static void CopyBinaryFiles(DirectoryInfo sourceDir, DirectoryInfo targetDir, bool force = false)
         {
             foreach (var file in sourceDir.GetFiles())
             {
@@ -256,33 +256,42 @@ namespace Cinchcast.Roque.Service
                     }
                     else
                     {
-                        FileVersionInfo sourceVersion = FileVersionInfo.GetVersionInfo(file.FullName);
-                        FileVersionInfo targetVersion = FileVersionInfo.GetVersionInfo(targetFile);
-                        if (string.IsNullOrEmpty(sourceVersion.ProductVersion) || string.IsNullOrEmpty(targetVersion.ProductVersion))
+                        if (force)
                         {
-                            // non-versioned file, check for modification date
-                            if (file.LastWriteTimeUtc != File.GetLastWriteTimeUtc(targetFile))
-                            {
-                                file.CopyTo(targetFile, true);
-                                Console.WriteLine("  [UPDATED] " + file.Name);
-                            }
-                            else
-                            {
-                                Console.WriteLine("  [UP TO DATE] " + file.Name);
-                            }
+                            file.CopyTo(targetFile, true);
+                            Console.WriteLine("  [COPIED] " + file.Name);
                         }
                         else
                         {
-                            if (sourceVersion.ProductVersion != targetVersion.ProductVersion)
+
+                            FileVersionInfo sourceVersion = FileVersionInfo.GetVersionInfo(file.FullName);
+                            FileVersionInfo targetVersion = FileVersionInfo.GetVersionInfo(targetFile);
+                            if (string.IsNullOrEmpty(sourceVersion.ProductVersion) || string.IsNullOrEmpty(targetVersion.ProductVersion))
                             {
-                                // different versions, overwrite
-                                file.CopyTo(targetFile, true);
-                                Console.WriteLine("  [UPDATED] " + file.Name + " " + targetVersion.ProductVersion + " => " + sourceVersion.ProductVersion);
+                                // non-versioned file, check for modification date
+                                if (file.LastWriteTimeUtc != File.GetLastWriteTimeUtc(targetFile))
+                                {
+                                    file.CopyTo(targetFile, true);
+                                    Console.WriteLine("  [UPDATED] " + file.Name);
+                                }
+                                else
+                                {
+                                    Console.WriteLine("  [UP TO DATE] " + file.Name);
+                                }
                             }
                             else
                             {
-                                // updated, ignore
-                                Console.WriteLine("  [UP TO DATE] " + file.Name + " " + targetVersion.ProductVersion);
+                                if (sourceVersion.ProductVersion != targetVersion.ProductVersion)
+                                {
+                                    // different versions, overwrite
+                                    file.CopyTo(targetFile, true);
+                                    Console.WriteLine("  [UPDATED] " + file.Name + " " + targetVersion.ProductVersion + " => " + sourceVersion.ProductVersion);
+                                }
+                                else
+                                {
+                                    // updated, ignore
+                                    Console.WriteLine("  [UP TO DATE] " + file.Name + " " + targetVersion.ProductVersion);
+                                }
                             }
                         }
                     }

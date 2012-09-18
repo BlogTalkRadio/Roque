@@ -180,11 +180,7 @@ namespace Cinchcast.Roque.Core
         {
             try
             {
-                if (!_SubscribersRegistered)
-                {
-                    Executor.Default.RegisterSubscribersForWorker(this);
-                    _SubscribersRegistered = true;
-                }
+                IsStopRequested = false;
 
                 if (State == WorkerState.Waiting)
                 {
@@ -201,6 +197,24 @@ namespace Cinchcast.Roque.Core
                     Trace.TraceInformation("Worker {0} started. Roque v{1}. AppDomain: {2}", Name, assemblyName.Version, AppDomain.CurrentDomain.FriendlyName);
                 }
 
+                while (!_SubscribersRegistered && !IsStopRequested)
+                {
+                    try
+                    {
+                        Executor.Default.RegisterSubscribersForWorker(this);
+                        _SubscribersRegistered = true;
+                    }
+                    catch
+                    {
+                        // error registering subscriber, log is already done
+                        if (RoqueTrace.Switch.TraceInfo)
+                        {
+                            Trace.TraceInformation("Error registering subscribers, retrying in 10 seconds...");
+                        }
+                        Thread.Sleep(10000);
+                    }
+                }
+
                 bool attemptWipResume = true;
 
                 int consecutiveErrors = 0;
@@ -210,7 +224,6 @@ namespace Cinchcast.Roque.Core
 
                 Stopwatch stopwatchBatchWork = null;
                 Stopwatch stopwatchLastDequeue = null;
-                IsStopRequested = false;
 
                 while (!IsStopRequested)
                 {
