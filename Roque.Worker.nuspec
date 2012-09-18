@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Roque.Worker</id>
+    <version>1.0.9</version>
+    <authors>benjamineidelman@blogtalkradio.com</authors>
+    <owners>benjamineidelman@blogtalkradio.com</owners>
+    <licenseUrl>https://raw.github.com/benjamine/Roque/master/MIT-LICENSE.txt</licenseUrl>
+    <projectUrl>http://benjamine.github.com/Roque/</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>This package is for class libraries that implement worker services or subscribers. Roque is a queueing framework. Allows you to create Redis-based distributed async event and work queues by just using plain-old C# methods and events.</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright © 2012 Cinchcast</copyright>
+    <tags>roque queue event work async</tags>
+    <references>
+      <reference file="Roque.Core.dll"/>
+      <reference file="Roque.Redis.dll"/>
+    </references>
+    <dependencies>
+      <dependency id="Castle.Core" version="3.1.0" />
+      <dependency id="Castle.Windsor" version="3.1.0"/>
+      <dependency id="Newtonsoft.Json" version="4.5.9" />
+      <dependency id="BookSleeve" version="1.1.0.8"  />
+      <dependency id="CLAP" version="4.3" />
+    </dependencies>
+  </metadata>
+  <files>
+    <!-- libraries required on producer side-->
+    <file src="Roque.Core.dll" target="lib\net40"/>
+    <file src="Roque.Redis.dll" target="lib\net40"/>
+    <file src="Roque.Common.Interfaces.dll" target="lib\net40"/>
+    <file src="Roque.Common.Services.dll" target="lib\net40"/>
+
+
+    <!-- README for worker projects -->
+    <file src="WorkerUtils\README.worker.md" target="content" />
+
+    <!-- windows service and console app -->
+    <file src="Roque.exe" target="tools"/>
+    <file src="Roque.exe.config" target="tools"/>
+    <file src="Roque.Core.dll" target="tools"/>
+    <file src="Roque.Redis.dll" target="tools"/>
+    <file src="Roque.Common.Interfaces.dll" target="tools"/>
+    <file src="Roque.Common.Services.dll" target="tools"/>
+    
+    <!-- required dependencies for roque.exe -->
+    <file src="Newtonsoft.Json.dll" target="tools"/>
+    <file src="CLAP.dll" target="tools"/>
+    <file src="Castle.Core.dll" target="tools"/>
+    <file src="Castle.Windsor.dll" target="tools"/>
+    <file src="BookSleeve.dll" target="tools"/>
+
+    <!-- powershell scripts -->
+    <file src="WorkerUtils\Init.ps1" target="tools" />
+    <file src="WorkerUtils\Install.ps1" target="tools" />
+
+    <!-- example configuration -->
+    <file src="roque.exe.config" target="content" />
+  </files>
+</package>
