@@ -193,7 +193,9 @@ namespace Cinchcast.Roque.Service
         }
 
         [Verb(Description = "Copy roque binaries to another folder")]
-        private static void CopyBinaries([CLAP.Description("target folder, by default is current folder")]string path, [CLAP.Description("overwrite files, even if target is up to date")] bool force = false)
+        private static void CopyBinaries([CLAP.Description("target folder, by default is current folder")]string path,
+            [CLAP.Description("overwrite files, even if target is up to date")] bool force = false,
+            [CLAP.Description("in silent mode only changes are printed")] bool silent = false)
         {
             var sourceDir = new DirectoryInfo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
 
@@ -203,12 +205,15 @@ namespace Cinchcast.Roque.Service
                 targetPath = ".";
             }
             targetPath = Path.GetFullPath(targetPath);
-            Console.WriteLine("Copying binaries to: " + targetPath);
+            if (!silent)
+            {
+                Console.WriteLine("Copying binaries to: " + targetPath);
+            }
             var targetDir = new DirectoryInfo(targetPath);
 
             try
             {
-                CopyBinaryFiles(sourceDir, targetDir, force);
+                CopyBinaryFiles(sourceDir, targetDir, force, silent);
             }
             catch (IOException ex)
             {
@@ -223,7 +228,7 @@ namespace Cinchcast.Roque.Service
                         Console.WriteLine("Stopping to update...");
                         service.Stop();
                         Console.WriteLine("Stopped");
-                        CopyBinaryFiles(sourceDir, targetDir);
+                        CopyBinaryFiles(sourceDir, targetDir, force, silent);
                         Console.WriteLine("Binaries updated, Starting...");
                         service.Start();
                         Console.WriteLine("Started");
@@ -240,7 +245,7 @@ namespace Cinchcast.Roque.Service
             }
         }
 
-        private static void CopyBinaryFiles(DirectoryInfo sourceDir, DirectoryInfo targetDir, bool force = false)
+        private static void CopyBinaryFiles(DirectoryInfo sourceDir, DirectoryInfo targetDir, bool force = false, bool silent = false)
         {
             foreach (var file in sourceDir.GetFiles())
             {
@@ -276,7 +281,10 @@ namespace Cinchcast.Roque.Service
                                 }
                                 else
                                 {
-                                    Console.WriteLine("  [UP TO DATE] " + file.Name);
+                                    if (!silent)
+                                    {
+                                        Console.WriteLine("  [UP TO DATE] " + file.Name);
+                                    }
                                 }
                             }
                             else
@@ -290,7 +298,10 @@ namespace Cinchcast.Roque.Service
                                 else
                                 {
                                     // updated, ignore
-                                    Console.WriteLine("  [UP TO DATE] " + file.Name + " " + targetVersion.ProductVersion);
+                                    if (!silent)
+                                    {
+                                        Console.WriteLine("  [UP TO DATE] " + file.Name + " " + targetVersion.ProductVersion);
+                                    }
                                 }
                             }
                         }

@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		nuget-pack.bat = nuget-pack.bat
 		README.md = README.md
 		Roque.nuspec = Roque.nuspec
+		Roque.Worker.nuspec = Roque.Worker.nuspec
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{9F4DD761-F6F0-43C7-BA2B-368F1883B75A}"

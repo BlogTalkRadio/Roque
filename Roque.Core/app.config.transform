@@ -12,7 +12,7 @@
           <setting key="host" value="localhost"/>
         </settings>
       </queue>
-      <!-- default event queue (only necessary on the broadcaster side) -->
+      <!-- default event queue -->
       <queue name="_events" type="Cinchcast.Roque.Redis.RedisQueue, Roque.Redis">
         <settings>
           <setting key="host" value="localhost"/>

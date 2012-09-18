@@ -196,24 +196,19 @@ Services are obtained using Castle Windsor.
 
 On development you can run roque in console mode. That way you can debug step-by-step or test your subscriber looking at verbose output.
 
-For console mode to work you'll need to copy Roque binaries to the project output folder. 
-You can do that by opening a console at the project output folder and execute ```roque copybinaries```.
-This will copy the roque binaries from the to current folder (eg. bin/Debug or bin/Local).
+When install Roque.Worker package you'll get powershell command that you can run from the VisualStudio Package Manager Console.
 
-Note: you can find roque.exe on the /tools folder on Roque nuget package.
+IMPORTANT: Before running commands on Package Manager Console check the selected default project.
 
-If you clear the bin folder or Roque package is updated, you'll need to run this command again.
+Now you can type ```Roque-``` and press TAB to see the list:
 
-Now you can open a console at the output folder (eg. bin/Local) and run roque.
+    Roque-Work // start "roque work" in a new console windows
+    Roque-Work-Debug // start "roque work /debug" in a new console windows
+    Roque-Status // show queues status
+    Roque-Events // show event subscriptions
+    Roque-Run <params> // run any roque <params> command on the Package Manager console
 
-    roque work # start all workers in config with autoStart=true (simulate windows service execution)
-    roque status # check status of queues
-    roque events # check established event subscriptions
-
-    # run worker attaching debugger
-    roque work /debug
-
-Run roque.exe without arguments to see all options.
+These commands will always copy (and update only when needed) roque binaries to output dir (they use ```roque copybinaries``` command). 
 
 Roque supports hot-deploy, so if you have roque running you can just build the project and roque will reload automatically:
 
@@ -225,7 +220,7 @@ Roque supports hot-deploy, so if you have roque running you can just build the p
     roque Information: 0 : Starting...
     roque Information: 0 : Worker example started. AppDomain: RoqueWorkers9e8ebbbf-3e06-455e-a3a1-e53f0efc7387
 
-Note: If you have added Roque Nuget Package to this project building with roque running will fail when trying to overwrite Roque dlls, to avoid that error on project references to Roque assemblies (Roque.Core and Roque.Redis) set Copy Local to false.
+Note: If you have added Roque Nuget Package to this project building with roque running will fail when trying to overwrite Roque dlls, Roque.Worker package sets Copy Local = false for this references on installation to avoid that error.
 
 ## Deploying as Windows Service
 
@@ -235,7 +230,7 @@ Note: If you have added Roque Nuget Package to this project building with roque 
 
     c:\Services\RoqueWorkers\ExampleSubscriber
 
-2. Add roque binaries (on nuget package tools folder) to this folder. Use ```roque copybinaries```.
+2. Add roque binaries (on nuget package tools folder) to this folder. Run ```roque copybinaries``` command on target folder.
 
 3. Copy this project output to the target folder, created on step 1.
 

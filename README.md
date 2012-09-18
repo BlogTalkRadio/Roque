@@ -324,139 +324,14 @@ The package will add roque default configuration to your web|app.config.
 
 ### Consumer side (workers)
 
-When you install Roque nuget package you can find roque.exe at \packages\Roque.x.x.x\tools'.
-To install a worker:
+On worker projects (containing service or subscriber classes) you can install Roque.Worker nuget package.
+Then you can then run roque in 3 ways:
 
-- Copy the contents of \tools folder to another location named accordingly to your type of worker (eg. ```C:\Services\ImageProcessorService```)
-- On that folder, modify roque.exe.config to declare the queues, workers and subscribers you want to run.
-- Copy to the same folder all assemblies required for the workers you declared. (eg. ```ImageProcessor.dll```)
+- Console mode (using ```Roque-Work``` or ```Roque-Work-Debug``` on VisualStudio Package Manager Console)
+- Install it as a service (using [SC](http://support.microsoft.com/kb/251192))
+- Run embedded in your app with: ```new WorkerHost().Start();```
 
-Not you can run Roque in 3 ways:
-
-#### 1. Console
-
-Run ```roque``` without arguments for help.
-
-You can open a console on your worker project output folder (eg. bin/Debug) and run:
-
-        roque copybinaries
-
-This command will copy (or update as needed) all roque binaries into current folder, so now you can run:
-
-        # add /debug to attach debugger
-        roque work
-
-You can find roque.exe on /package/Roque.1.x.x/tools
-
-#### 2. Windows Service
-
-The same roque.exe can be installed as windows service to run workers. To create a new instance of a roque worker follow these steps:
-
-1. Create a target folder (eg. c:\Services\RoqueWorkers\ExampleWorker).
-
-2. Copy roque binaries into that folder:
-
-        roque copybinaries
-
-3. Copy your roque.exe.config and all the needed assemblies on the same folder (assemblies containing services and/or subscribers)
-
-4. create windows service using windows [SC](http://support.microsoft.com/kb/251192) command:
-
-
-	    sc create [service name] binPath=<full\path\to\roque.exe>
-
-    Note: Each instance of roque can start multiple workers using thread. Though to get more control and separation between them it's recommended to use separate windows service instances for them.
-
-Roque.exe will run your workers on a separate [AppDomain](http://msdn.microsoft.com/en-us/library/System.AppDomain.aspx).
-
-This allows Roque to:
-
-- Automatically restart when roque.exe.config or any dll changes. (acheiving a "hot deploy" similar to Asp.Net websites)
-- Monitor memory consumption to unload the AppDomain and restart when memory size exceeds a limit. Memory is checked after a GC.Collect() every minute. (This is useful if you want to protect your Roque Service from memory leaks in any worker subscriber or job implementation).
-
-
-``` xml
-
-    <?xml version="1.0"?>
-    <configuration>
-      <configSections>
-        <section name="roque" type="Cinchcast.Roque.Core.Configuration.Roque, Roque.Core"/>
-      </configSections>
-
-		<!-- restartOnFileChanges: restart if any *.config or *.dll change, default value is true -->
-		<!-- restartIfMemorySizeIsMoreThan: restart if memory size exceeds 20MB, default value is 0 = no monitoring -->
-      <roque 
-			restartOnFileChanges="true"
-			restartIfMemorySizeIsMoreThan="20971520"
-		>
-			<!-- your queues and workers here -->
-      </roque>
-    </configuration>
-```
-
-##### Updating
-
-Updating an instance is as simple as repeating step 3 above (overwrite config and assemblies).
-Roque will detect any change on .config or .dlls and reload automatically. 
-
-If you need to update Roque version you can repeat step 2:
-
-        roque copybinaries
-
-These will only update files when a new version is available, and if binaries are running as a service it will try to stop the service, update binaries and start service back again.
-
-        [ERROR] The process cannot access the file 'C:\code\BTR\devmain\dlls\BTRRoqueKissMetrics\bin\Local\Roque.Core.dll' because it is being used by another process.
-        Roque binaries on this folder are running as service BTRROQUEEXAMPLE1
-        Stopping to update...
-        Stopped
-            ....
-          [UPDATED] Roque.exe 1.0.6.0 => 1.0.7.0
-        Binaries updated, Starting...
-        Started
-
-If updating requires to restart the service you will need admin privileges.
-
-Note: when stopping Roque it will always wait for jobs in progress to complete.
-
-Tip: For more detailed instructions you can include a copy of [README.worker.md](https://github.com/benjamine/Roque/blob/master/Roque.Service/WorkerUtils/README.worker.md) file in your worker projects.
-
-#### 3. Embedded in your app
-
-You can start Roque workers on your app (for example if you are interested in 2-way messaging):
-
-``` csharp
-
-	// run a worker declared in config
-	Worker.Get("myworker").Start();
-
-	// run all workers declared to autostart in config
-	Worker.All.Start(onlyAutoStart: true);
-
-	// stop all workers
-	Worker.All.Stop();
-
-```
-
-or you can use a WorkerHost (WorkerHost run workers on a separate AppDomain and allows you to monitor memory size, and .config changes. If your restart it it'll unload AppDomain and start a new one):
-
-``` csharp
-
-	var host = new WorkerHost();
-
-	// run a worker declared in config
-	host.Start("myworker");
-	host.Stop();
-
-	// run all workers declared to autostart in config
-	host.Start();
-
-	// stop and restart all workers in host
-	host.Restart();
-
-	// stop all workers in host
-	host.Stop();
-
-```
+For detailed instructions on creating and deploying workers check [README.worker.md](https://github.com/benjamine/Roque/blob/master/Roque.Service/WorkerUtils/README.worker.md).
 
 ## Features
 
