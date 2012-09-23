@@ -116,10 +116,8 @@ namespace Cinchcast.Roque.Core
                     }
                     catch (Exception ex)
                     {
-                        if (RoqueTrace.Switch.TraceError)
-                        {
-                            Trace.TraceError(string.Format("Error deserializing parameter: {0}. Method: {1}, Parameter: {2}, Expected Type: {3}", ex.Message, method.Name, methodParametersInfo[index].Name, methodParametersInfo[index].ParameterType.FullName), ex);
-                        }
+                        RoqueTrace.Source.Trace(TraceEventType.Error, "Error deserializing parameter: {0}. Method: {1}, Parameter: {2}, Expected Type: {3}",
+                            ex.Message, method.Name, methodParametersInfo[index].Name, methodParametersInfo[index].ParameterType.FullName, ex);
                         throw;
                     }
                 }
@@ -130,10 +128,7 @@ namespace Cinchcast.Roque.Core
                 catch (TargetInvocationException ex)
                 {
                     var jobException = ex.InnerException;
-                    if (RoqueTrace.Switch.TraceError)
-                    {
-                        Trace.TraceError(string.Format("Error invoking job target: {0}\n\n{1}", jobException.Message, jobException));
-                    }
+                    RoqueTrace.Source.Trace(TraceEventType.Error, "Error invoking job target: {0}\n\n{1}", jobException.Message, jobException);
                     var jobExceptionType = jobException.GetType();
                     if (jobException is ShouldRetryException)
                     {
@@ -196,10 +191,8 @@ namespace Cinchcast.Roque.Core
                 }
                 catch (Exception ex)
                 {
-                    if (RoqueTrace.Switch.TraceError)
-                    {
-                        Trace.TraceError(string.Format("Error deserializing event args: {0}. Event: {1}, Expected Type: {2}", ex.Message, eventInfo.Name, eventArgsType.FullName), ex);
-                    }
+                    RoqueTrace.Source.Trace(TraceEventType.Error, "Error deserializing event args: {0}. Event: {1}, Expected Type: {2}",
+                         ex.Message, eventInfo.Name, eventArgsType.FullName, ex);
                     throw;
                 }
 
@@ -219,10 +212,7 @@ namespace Cinchcast.Roque.Core
                         }
                         else
                         {
-                            if (RoqueTrace.Switch.TraceInfo)
-                            {
-                                Trace.TraceInformation(string.Format("No suscribers found for event: {0}", eventInfo.Name));
-                            }
+                            RoqueTrace.Source.Trace(TraceEventType.Warning, "No suscribers found for event: {0}", eventInfo.Name);
                         }
                     }
                     else
@@ -241,10 +231,7 @@ namespace Cinchcast.Roque.Core
                 catch (TargetInvocationException ex)
                 {
                     var jobException = ex.InnerException;
-                    if (RoqueTrace.Switch.TraceError)
-                    {
-                        Trace.TraceError(string.Format("Error invoking event subscriber: {0}\n\n{1}", jobException.Message, jobException));
-                    }
+                    RoqueTrace.Source.Trace(TraceEventType.Error, "Error invoking event handler: {0}\n\n{1}", jobException.Message, jobException);
                     var jobExceptionType = jobException.GetType();
                     if (jobException is ShouldRetryException)
                     {
@@ -292,22 +279,13 @@ namespace Cinchcast.Roque.Core
         {
             try
             {
-                if (RoqueTrace.Switch.TraceInfo)
-                {
-                    Trace.TraceInformation("Job Starting: " + job.Method, job);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Information, "Job Starting: {0}", job.Method);
                 DoExecute(job);
-                if (RoqueTrace.Switch.TraceInfo)
-                {
-                    Trace.TraceInformation("Job Completed: " + job.Method, job);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Information, "Job Completed: {0}", job.Method);
             }
             catch (Exception ex)
             {
-                if (RoqueTrace.Switch.TraceError)
-                {
-                    Trace.TraceError("Error executing job: " + ex.Message, ex);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Error, "Error executing job: {0}", ex.Message, ex);
                 throw;
             }
         }
@@ -368,10 +346,8 @@ namespace Cinchcast.Roque.Core
                     }
                     catch (Exception ex)
                     {
-                        if (RoqueTrace.Switch.TraceError)
-                        {
-                            Trace.TraceError(string.Format("Error injecting subscriber parameter: {0}. Method: {1}, Parameter: {2}, Expected Type: {3}", ex.Message, suscribeMethod.Name, paramInfo.Name, paramInfo.ParameterType.FullName), ex);
-                        }
+                        RoqueTrace.Source.Trace(TraceEventType.Error, "Error injecting subscriber parameter: {0}. Method: {1}, Parameter: {2}, Expected Type: {3}",
+                            ex.Message, suscribeMethod.Name, paramInfo.Name, paramInfo.ParameterType.FullName, ex);
                         throw;
                     }
                 }
@@ -388,10 +364,8 @@ namespace Cinchcast.Roque.Core
                             {
                                 Queue.Get(queue).ReportEventSubscription(sourceQueue, paramInfo.ParameterType.FullName, eventName);
                             }
-                            if (RoqueTrace.Switch.TraceVerbose)
-                            {
-                                Trace.TraceInformation(string.Format("Reported event subscriptions. Events: {0}:{1}, Source Queue: {2}, Queue: {3}", paramInfo.ParameterType.FullName, string.Join(",", eventNames), sourceQueue, queue));
-                            }
+                            RoqueTrace.Source.Trace(TraceEventType.Verbose, "Reported event subscriptions. Events: {0}:{1}, Source Queue: {2}, Queue: {3}",
+                                paramInfo.ParameterType.FullName, string.Join(",", eventNames), sourceQueue, queue);
                         }
                     }
                 }
@@ -424,10 +398,8 @@ namespace Cinchcast.Roque.Core
                 }
                 catch (Exception ex)
                 {
-                    if (RoqueTrace.Switch.TraceError)
-                    {
-                        Trace.TraceError(string.Format("Error registering subscriber: {0}. Type: {1}", ex.Message, subscriberConfig.SubscriberType), ex);
-                    }
+                    RoqueTrace.Source.Trace(TraceEventType.Error, "Error registering subscriber: {0}. Type: {1}",
+                        ex.Message, subscriberConfig.SubscriberType, ex);
                     throw;
                 }
             }

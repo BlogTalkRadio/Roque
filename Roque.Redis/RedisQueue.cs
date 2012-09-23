@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using BookSleeve;
 using Cinchcast.Roque.Core;
 
@@ -34,8 +35,6 @@ namespace Cinchcast.Roque.Redis
         {
             get { return _Connection; }
         }
-
-        public int EnqueueTimeoutSeconds { get; set; }
 
         private object syncConnection = new object();
 
@@ -67,6 +66,7 @@ namespace Cinchcast.Roque.Redis
                 {
                     string host = null;
                     int port = 0;
+                    int timeout;
                     try
                     {
                         if (!Settings.TryGet("host", out host))
@@ -74,28 +74,19 @@ namespace Cinchcast.Roque.Redis
                             throw new Exception("Redis host is required");
                         }
                         port = Settings.Get("port", 6379);
-                        EnqueueTimeoutSeconds = Settings.Get("enqueueTimeoutSeconds", 5);
+                        timeout = Settings.Get("timeout", 2000);
 
-                        if (Roque.Core.RoqueTrace.Switch.TraceInfo)
-                        {
-                            Trace.TraceInformation(string.Format("[REDIS] connecting to {0}:{1}", host, port));
-                        }
+                        RoqueTrace.Source.Trace(TraceEventType.Information, "[REDIS] connecting to {0}:{1}", host, port);
 
-                        _Connection = new RedisConnection(host, port);
+                        _Connection = new RedisConnection(host, port, timeout);
                         var openAsync = _Connection.Open();
                         _Connection.Wait(openAsync);
-                        if (Roque.Core.RoqueTrace.Switch.TraceInfo)
-                        {
-                            Trace.TraceInformation(string.Format("[REDIS] connected to {0}:{1}", host, port));
-                        }
+
+                        RoqueTrace.Source.Trace(TraceEventType.Information, "[REDIS] connected");
                     }
                     catch (Exception ex)
                     {
-                        if (Roque.Core.RoqueTrace.Switch.TraceError)
-                        {
-                            Trace.TraceError(
-                                string.Format("[REDIS] error connecting to {0}:{1}, {2}", host, port, ex.Message), ex);
-                        }
+                        RoqueTrace.Source.Trace(TraceEventType.Error, "[REDIS] error connecting to {0}:{1}, {2}", host, port, ex.Message, ex);
                         throw;
                     }
                 }
@@ -127,7 +118,7 @@ namespace Cinchcast.Roque.Redis
 
         protected override void EnqueueJson(string data)
         {
-            GetOpenConnection().Lists.AddFirst(0, GetRedisKey(), data);
+            GetOpenConnection().Lists.AddFirst(0, GetRedisKey(), data).Wait();
         }
 
         protected override string DequeueJson(Worker worker, int timeoutSeconds)
@@ -145,10 +136,7 @@ namespace Cinchcast.Roque.Redis
                 }
                 catch (Exception ex)
                 {
-                    if (Roque.Core.RoqueTrace.Switch.TraceError)
-                    {
-                        Trace.TraceError("[REDIS] error registering job start: " + ex.Message, ex);
-                    }
+                    RoqueTrace.Source.Trace(TraceEventType.Error, "[REDIS] error registering job start: {0}", ex.Message, ex);
                 }
             }
             return data;
@@ -197,10 +185,7 @@ namespace Cinchcast.Roque.Redis
                 }
                 catch (Exception ex)
                 {
-                    if (Roque.Core.RoqueTrace.Switch.TraceError)
-                    {
-                        Trace.TraceError("[REDIS] error registering job start: " + ex.Message, ex);
-                    }
+                    RoqueTrace.Source.Trace(TraceEventType.Error, "[REDIS] error registering in progress job start: {0}", ex.Message, ex);
                 }
             }
             return data;
@@ -222,10 +207,7 @@ namespace Cinchcast.Roque.Redis
             }
             catch (Exception ex)
             {
-                if (Roque.Core.RoqueTrace.Switch.TraceError)
-                {
-                    Trace.TraceError("[REDIS] error registering job completion: " + ex.Message, ex);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Error, "[REDIS] error registering job completion: {0}", ex.Message, ex);
                 throw;
             }
         }
@@ -242,10 +224,7 @@ namespace Cinchcast.Roque.Redis
             if (added)
             {
                 connection.Publish(GetRedisKeyForQueue(sourceQueue, "events:subscriberschanges"), "+" + target + ":" + eventName).Wait();
-                if (Roque.Core.RoqueTrace.Switch.TraceInfo)
-                {
-                    Trace.TraceInformation("[REDIS] Queue {0} subscribed to events {1}:{2} events on queue {3}", Name, target, eventName, sourceQueue);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Information, "[REDIS] Queue {0} subscribed to events {1}:{2} events on queue {3}", Name, target, eventName, sourceQueue);
             }
         }
 
@@ -272,16 +251,10 @@ namespace Cinchcast.Roque.Redis
                 _SubscribedToSubscribersChangesChannel = connection.GetOpenSubscriberChannel();
                 _SubscribedToSubscribersChangesChannel.Subscribe(GetRedisKey("events:subscriberschanges"), (message, bytes) =>
                 {
-                    if (Roque.Core.RoqueTrace.Switch.TraceInfo)
-                    {
-                        Trace.TraceInformation("[REDIS] Subscribers added to {0}, clearing subscribers cache", Name);
-                    }
+                    RoqueTrace.Source.Trace(TraceEventType.Information, "[REDIS] Subscribers added to {0}, clearing subscribers cache", Name);
                     ClearSubscribersCache();
                 });
-                if (Roque.Core.RoqueTrace.Switch.TraceVerbose)
-                {
-                    Trace.TraceInformation("[REDIS] Listening for subscribers changes on queue {0}", Name);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Verbose, "[REDIS] Listening for subscribers changes on queue {0}", Name);
             }
 
             if (DateTime.Now.Subtract(_SubscribersCacheLastClear) > (SubscribersCacheExpiration ?? DefaultSubscribersCacheExpiration))
@@ -310,20 +283,24 @@ namespace Cinchcast.Roque.Redis
 
             if (subscribers == null || subscribers.Length == 0)
             {
-                if (RoqueTrace.Switch.TraceVerbose)
-                {
-                    Trace.TraceInformation(string.Format("No subscriber for this event, enqueue cancelled. Event: {0}:{1}, Queue:{2}", target, eventName, Name));
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Verbose, "No subscriber for this event, enqueue omitted. Event: {0}:{1}, Queue:{2}", target, eventName, Name);
             }
             else
             {
                 foreach (var subscriber in subscribers)
                 {
-                    connection.Lists.AddFirst(0, GetRedisKeyForQueue(subscriber), data);
+                    connection.Lists.AddFirst(0, GetRedisKeyForQueue(subscriber), data).ContinueWith(task =>
+                    {
+                        if (task.Exception != null)
+                        {
+                            RoqueTrace.Source.Trace(TraceEventType.Error, "[REDIS] Error enqueuing event on {0}. Event: {1}:{2}. {3}", subscriber, target, eventName, task.Exception.Message, task.Exception);
+                        }
+                    },
+                    TaskContinuationOptions.OnlyOnFaulted);
                 }
-                if (RoqueTrace.Switch.TraceVerbose)
+                if (RoqueTrace.Source.Switch.ShouldTrace(TraceEventType.Verbose))
                 {
-                    Trace.TraceInformation(string.Format("Event published to queues: {0}. Event: {1}:{2}", string.Join(", ", subscribers), target, eventName));
+                    RoqueTrace.Source.Trace(TraceEventType.Verbose, "Event published to queues: {0}. Event: {1}:{2}", string.Join(", ", subscribers), target, eventName);
                 }
             }
         }

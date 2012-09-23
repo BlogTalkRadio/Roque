@@ -67,10 +67,7 @@ namespace Cinchcast.Roque.Core
                 }
                 catch (Exception ex)
                 {
-                    if (RoqueTrace.Switch.TraceError)
-                    {
-                        Trace.TraceError(ex.Message, ex);
-                    }
+                    RoqueTrace.Source.Trace(TraceEventType.Error, "Error looking for queue {0}: {1}", name, ex.Message, ex);
                     throw;
                 }
             }
@@ -129,18 +126,12 @@ namespace Cinchcast.Roque.Core
             string data;
             try
             {
-                if (RoqueTrace.Switch.TraceVerbose)
-                {
-                    Trace.TraceInformation(string.Format("Adding job to {0}", Name));
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Verbose, "Adding job to {0}", Name);
                 data = JsonConvert.SerializeObject(job);
             }
             catch (Exception ex)
             {
-                if (RoqueTrace.Switch.TraceError)
-                {
-                    Trace.TraceError("Error serializing job: " + ex.Message, ex);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Error, "Error serializing job: {0}", ex.Message, ex);
                 return false;
             }
             try
@@ -153,17 +144,11 @@ namespace Cinchcast.Roque.Core
                 {
                     EnqueueJson(data);
                 }
-                if (RoqueTrace.Switch.TraceVerbose)
-                {
-                    Trace.TraceInformation(string.Format("Added job to {0}", Name));
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Verbose, "Added job to {0}", Name);
             }
             catch (Exception ex)
             {
-                if (RoqueTrace.Switch.TraceError)
-                {
-                    Trace.TraceError("Error adding job: " + ex.Message, ex);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Error, "Error adding job: {0}", ex.Message, ex);
                 return false;
             }
             return true;
@@ -183,28 +168,19 @@ namespace Cinchcast.Roque.Core
                 {
                     timeoutSeconds = 1;
                 }
-                if (RoqueTrace.Switch.TraceVerbose)
-                {
-                    Trace.TraceInformation(string.Format("Worker {0} waiting job on {0}", worker.Name, Name));
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Verbose, "Worker {0} waiting job from {1} queue...", worker.Name, Name);
                 string data = DequeueJson(worker, timeoutSeconds);
                 if (string.IsNullOrEmpty(data))
                 {
                     return null;
                 }
                 Job job = JsonConvert.DeserializeObject<Job>(data);
-                if (RoqueTrace.Switch.TraceVerbose)
-                {
-                    Trace.TraceInformation(string.Format("Worker {0} received job from {1}", worker.Name, Name));
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Verbose, "Worker {0} received job from {1} queue", worker.Name, Name);
                 return job;
             }
             catch (Exception ex)
             {
-                if (RoqueTrace.Switch.TraceError)
-                {
-                    Trace.TraceError("Error dequeuing job: " + ex.Message, ex);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Error, "Error receiving job: {0}", ex.Message, ex);
                 throw;
             }
         }
@@ -212,8 +188,7 @@ namespace Cinchcast.Roque.Core
         /// <summary>
         /// Picks a job from this queue. If there queue is empty blocks until one is obtained.
         /// </summary>
-        /// <param name="worker">the worker that requests the job, the job will me marked as in progress for this worker</param>
-        /// <param name="timeoutSeconds">if blocked waiting for a job after this time null will be return</param>
+        /// <param name="length">the current length of the queue</param>
         /// <returns>a job or null if none could be obtained before timeout</returns>
         public Job Peek(out long length)
         {
@@ -229,10 +204,7 @@ namespace Cinchcast.Roque.Core
             }
             catch (Exception ex)
             {
-                if (RoqueTrace.Switch.TraceError)
-                {
-                    Trace.TraceError("Error peeking job: " + ex.Message, ex);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Error, "Error peeking job: {0}", ex.Message, ex);
                 throw;
             }
         }
@@ -253,10 +225,7 @@ namespace Cinchcast.Roque.Core
         {
             try
             {
-                if (RoqueTrace.Switch.TraceVerbose)
-                {
-                    Trace.TraceInformation(string.Format("Looking for pending jobs on {0}", Name));
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Verbose, "Looking for pending jobs on {0} queue", Name);
 
                 IQueueWithInProgressData queueWithInProgress = this as IQueueWithInProgressData;
 
@@ -272,18 +241,13 @@ namespace Cinchcast.Roque.Core
                 }
                 Job job = JsonConvert.DeserializeObject<Job>(data);
                 job.MarkAsResuming();
-                if (RoqueTrace.Switch.TraceVerbose)
-                {
-                    Trace.TraceInformation(string.Format("Resuming pending job on {0}", Name));
-                }
+
+                RoqueTrace.Source.Trace(TraceEventType.Verbose, "Resuming pending job on {0} queue", Name);
                 return job;
             }
             catch (Exception ex)
             {
-                if (RoqueTrace.Switch.TraceError)
-                {
-                    Trace.TraceError("Error dequeuing in progress job: " + ex.Message, ex);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Error, "Error receiving in progress job: {0}", ex.Message, ex);
                 throw;
             }
         }
@@ -318,10 +282,7 @@ namespace Cinchcast.Roque.Core
             }
             catch (Exception ex)
             {
-                if (RoqueTrace.Switch.TraceError)
-                {
-                    Trace.TraceError("Error reporting event subscription: " + ex.Message, ex);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Error, "Error reporting event subscription: {0}", ex.Message, ex);
                 throw;
             }
         }

@@ -4,6 +4,7 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using System.Diagnostics;
 using Cinchcast.Roque.Core;
 
 namespace Cinchcast.Roque.Common
@@ -21,34 +22,22 @@ namespace Cinchcast.Roque.Common
 
         public void TraceVerbose(string format, params object[] arguments)
         {
-            if (Roque.Core.RoqueTrace.Switch.TraceVerbose)
-            {
-                System.Diagnostics.Trace.TraceInformation(format);
-            }
+            RoqueTrace.Source.Trace(TraceEventType.Verbose, format, arguments);
         }
 
         public void TraceInformation(string format, params object[] arguments)
         {
-            if (Roque.Core.RoqueTrace.Switch.TraceInfo)
-            {
-                System.Diagnostics.Trace.TraceInformation(format);
-            }
+            RoqueTrace.Source.Trace(TraceEventType.Information, format, arguments);
         }
 
         public void TraceError(string format, params object[] arguments)
         {
-            if (Roque.Core.RoqueTrace.Switch.TraceError)
-            {
-                System.Diagnostics.Trace.TraceInformation(format, arguments);
-            }
+            RoqueTrace.Source.Trace(TraceEventType.Error, format, arguments);
         }
 
         public void TraceWarning(string format, params object[] arguments)
         {
-            if (Roque.Core.RoqueTrace.Switch.TraceWarning)
-            {
-                System.Diagnostics.Trace.TraceInformation(format, arguments);
-            }
+            RoqueTrace.Source.Trace(TraceEventType.Warning, format, arguments);
         }
     }
 }

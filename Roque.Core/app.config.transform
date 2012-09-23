@@ -1,37 +1,36 @@
 ﻿<?xml version="1.0"?>
 <configuration>
-  <configSections>
-    <section name="roque" type="Cinchcast.Roque.Core.Configuration.Roque, Roque.Core"/>
-  </configSections>
-  <roque>
-    <queues>
-      <!-- define your work queues -->
-      <queue name="default" type="Cinchcast.Roque.Redis.RedisQueue, Roque.Redis">
-        <settings>
-          <!-- for RedisQueue available settings are host and port -->
-          <setting key="host" value="localhost"/>
-        </settings>
-      </queue>
-      <!-- default event queue -->
-      <queue name="_events" type="Cinchcast.Roque.Redis.RedisQueue, Roque.Redis">
-        <settings>
-          <setting key="host" value="localhost"/>
-        </settings>
-      </queue>
-    </queues>
-  </roque>
-  <system.diagnostics>
-    <switches>
-      <add name="roque" value="Verbose"/>
-    </switches>
-    <trace autoflush="true">
-      <listeners>
-        <add name="logListener" type="System.Diagnostics.TextWriterTraceListener" initializeData="roque.log"/>
-        <add name="consoleListener" type="System.Diagnostics.ConsoleTraceListener"/>
-      </listeners>
-    </trace>
-  </system.diagnostics>
-  <startup>
-    <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.0"/>
-  </startup>
+    <configSections>
+        <section name="roque" type="Cinchcast.Roque.Core.Configuration.Roque, Roque.Core"/>
+    </configSections>
+    <roque>
+        <queues>
+            <!-- define your work queues -->
+            <queue name="default" type="Cinchcast.Roque.Redis.RedisQueue, Roque.Redis">
+                <settings>
+                    <!-- for RedisQueue available settings are: host, port, timeout(milliseonds) -->
+                    <setting key="host" value="localhost"/>
+                </settings>
+            </queue>
+            <!-- default event queue -->
+            <queue name="_events" type="Cinchcast.Roque.Redis.RedisQueue, Roque.Redis">
+                <settings>
+                    <setting key="host" value="localhost"/>
+                </settings>
+            </queue>
+        </queues>
+    </roque>
+    <system.diagnostics>
+        <sources>
+            <source name="roque" switchValue="Warning">
+                <listeners>
+                    <add name="logListener" type="System.Diagnostics.TextWriterTraceListener" initializeData="roque.log"/>
+                </listeners>
+            </source>
+        </sources>
+        <trace autoflush="true"/>
+    </system.diagnostics>
+    <startup>
+        <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.0"/>
+    </startup>
 </configuration>

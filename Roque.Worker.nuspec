@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Roque.Worker</id>
-    <version>1.0.9</version>
+    <version>1.0.10</version>
     <authors>benjamineidelman@blogtalkradio.com</authors>
     <owners>benjamineidelman@blogtalkradio.com</owners>
     <licenseUrl>https://raw.github.com/benjamine/Roque/master/MIT-LICENSE.txt</licenseUrl>

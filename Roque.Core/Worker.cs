@@ -120,10 +120,7 @@ namespace Cinchcast.Roque.Core
                 }
                 catch (Exception ex)
                 {
-                    if (RoqueTrace.Switch.TraceError)
-                    {
-                        Trace.TraceError(ex.Message, ex);
-                    }
+                    RoqueTrace.Source.Trace(TraceEventType.Error, "Error creating worker {0}: {1}", name, ex.Message, ex);
                     throw;
                 }
             }
@@ -191,11 +188,9 @@ namespace Cinchcast.Roque.Core
                     throw new Exception("This worker is already working");
                 }
                 State = WorkerState.Waiting;
-                if (RoqueTrace.Switch.TraceInfo)
-                {
-                    var assemblyName = Assembly.GetAssembly(typeof(Worker)).GetName();
-                    Trace.TraceInformation("Worker {0} started. Roque v{1}. AppDomain: {2}", Name, assemblyName.Version, AppDomain.CurrentDomain.FriendlyName);
-                }
+
+                RoqueTrace.Source.Trace(TraceEventType.Information, "Worker {0} started. Roque v{1}. AppDomain: {2}",
+                    Name, new Func<object>(() => Assembly.GetAssembly(typeof(Worker)).GetName().Version), AppDomain.CurrentDomain.FriendlyName);
 
                 while (!_SubscribersRegistered && !IsStopRequested)
                 {
@@ -207,10 +202,7 @@ namespace Cinchcast.Roque.Core
                     catch
                     {
                         // error registering subscriber, log is already done
-                        if (RoqueTrace.Switch.TraceInfo)
-                        {
-                            Trace.TraceInformation("Error registering subscribers, retrying in 10 seconds...");
-                        }
+                        RoqueTrace.Source.Trace(TraceEventType.Information, "Error registering subscribers, retrying in 10 seconds...");
                         Thread.Sleep(10000);
                     }
                 }
@@ -239,18 +231,12 @@ namespace Cinchcast.Roque.Core
                             attemptWipResume = false;
                             if (job == null)
                             {
-                                if (RoqueTrace.Switch.TraceInfo)
-                                {
-                                    Trace.TraceInformation("No pending jobs to resume for worker: " + Name);
-                                }
+                                RoqueTrace.Source.Trace(TraceEventType.Information, "No pending jobs to resume for worker: {0}", Name);
                             }
                             else
                             {
                                 retries = 1;
-                                if (RoqueTrace.Switch.TraceInfo)
-                                {
-                                    Trace.TraceInformation("Resuming pending job for worker: " + Name);
-                                }
+                                RoqueTrace.Source.Trace(TraceEventType.Information, "Resuming pending job for worker: {0}", Name);
                             }
                         }
 
@@ -260,10 +246,7 @@ namespace Cinchcast.Roque.Core
                             {
                                 job = Queue.GetInProgressJob(this);
                                 shouldRetry = false;
-                                if (RoqueTrace.Switch.TraceInfo)
-                                {
-                                    Trace.TraceInformation(string.Format("Retry #'{0}'. Worker {1}, Method: {2}", retries, Name, job.Method));
-                                }
+                                RoqueTrace.Source.Trace(TraceEventType.Information, "Retry #'{0}'. Worker {1}, Method: {2}", retries, Name, job.Method);
                             }
                             else
                             {
@@ -288,22 +271,14 @@ namespace Cinchcast.Roque.Core
                             }
                             catch (Exception ex)
                             {
-                                if (RoqueTrace.Switch.TraceError)
-                                {
-                                    Trace.TraceError(
-                                        "Error marking job as completed for worker " + Name + ": " + ex.Message, ex);
-                                }
+                                RoqueTrace.Source.Trace(TraceEventType.Error, "Error marking job as completed for worker {0}: {1}", Name, ex.Message, ex);
                             }
                         }
                         else
                         {
                             if (stopwatchBatchWork != null)
                             {
-                                if (RoqueTrace.Switch.TraceInfo)
-                                {
-                                    Trace.TraceInformation("Queue is empty. Worker {0} worked for: {1}", Name,
-                                                           stopwatchBatchWork.Elapsed.Subtract(stopwatchLastDequeue.Elapsed));
-                                }
+                                RoqueTrace.Source.Trace(TraceEventType.Information, "Queue is empty. Worker {0} worked for: {1}", Name, stopwatchBatchWork.Elapsed.Subtract(stopwatchLastDequeue.Elapsed));
                                 stopwatchBatchWork = null;
                             }
                         }
@@ -330,18 +305,11 @@ namespace Cinchcast.Roque.Core
                                 }
                                 catch (Exception ex)
                                 {
-                                    if (RoqueTrace.Switch.TraceError)
-                                    {
-                                        Trace.TraceError(
-                                            "Error marking job as completed for worker " + Name + ": " + ex.Message, ex);
-                                    }
+                                    RoqueTrace.Source.Trace(TraceEventType.Error, "Error marking failed job as completed for worker {0}: {1}", Name, ex.Message, ex);
                                 }
                                 if (consecutiveErrors >= TooManyErrors)
                                 {
-                                    if (RoqueTrace.Switch.TraceInfo)
-                                    {
-                                        Trace.TraceInformation(string.Format("Too many errors on worker '{0}', picking next job in {1} seconds", Name, TooManyErrorsRetrySeconds));
-                                    }
+                                    RoqueTrace.Source.Trace(TraceEventType.Warning, "Too many errors on worker '{0}', picking next job in {1} seconds", Name, TooManyErrorsRetrySeconds);
                                     // too many errors, wait some time before picking next job
                                     Thread.Sleep(TimeSpan.FromSeconds(TooManyErrorsRetrySeconds));
                                 }
@@ -350,10 +318,7 @@ namespace Cinchcast.Roque.Core
                             {
                                 retries++;
                                 shouldRetry = true;
-                                if (RoqueTrace.Switch.TraceInfo)
-                                {
-                                    Trace.TraceInformation(string.Format("Retrying failed job on worker '{0}' in {1}", Name, retryEx.Delay));
-                                }
+                                RoqueTrace.Source.Trace(TraceEventType.Information, "Retrying failed job on worker '{0}' in {1}", Name, retryEx.Delay);
                                 // wait some time before retrying the failed job
                                 if (retryEx.Delay.Ticks > 0)
                                 {
@@ -368,18 +333,12 @@ namespace Cinchcast.Roque.Core
             }
             catch (Exception ex)
             {
-                if (RoqueTrace.Switch.TraceError)
-                {
-                    Trace.TraceError("Error running worker " + Name + ": " + ex.Message, ex);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Error, "Error running worker {0}: {1}", Name, ex.Message, ex);
             }
             finally
             {
                 State = WorkerState.Stopped;
-                if (RoqueTrace.Switch.TraceInfo)
-                {
-                    Trace.TraceInformation("Worker stopped: " + Name);
-                }
+                RoqueTrace.Source.Trace(TraceEventType.Information, "Worker stopped: {0}", Name);
                 var handler = Stopped;
                 if (handler != null)
                 {

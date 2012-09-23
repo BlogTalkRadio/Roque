@@ -73,10 +73,8 @@ namespace Cinchcast.Roque.Core
                 {
                     // error getting list of subscribers, we don't know but there might be subscribers
                     hasSubscribers = true;
-                    if (RoqueTrace.Switch.TraceError)
-                    {
-                        Trace.TraceError(string.Format("Error looking for subscribers to this event: {0}. Event: {1}:{2}, Queue:{3}", ex.Message, SourceType.FullName, EventInfo.Name, Broadcaster.Queue.Name));
-                    }
+                    RoqueTrace.Source.Trace(TraceEventType.Error, "Error looking for subscribers to this event: {0}. Event: {1}:{2}, Queue:{3}",
+                        ex.Message, SourceType.FullName, EventInfo.Name, Broadcaster.Queue.Name);
                 }
 
                 if (hasSubscribers)
@@ -94,10 +92,8 @@ namespace Cinchcast.Roque.Core
                 }
                 else
                 {
-                    if (RoqueTrace.Switch.TraceVerbose)
-                    {
-                        Trace.TraceInformation(string.Format("No subscriber for this event, enqueue cancelled. Event: {0}:{1}, Queue:{2}", SourceType.FullName, EventInfo.Name, Broadcaster.Queue.Name));
-                    }
+                    RoqueTrace.Source.Trace(TraceEventType.Verbose, "No subscriber for this event, omitting. Event: {0}:{1}, Queue:{2}",
+                        SourceType.FullName, EventInfo.Name, Broadcaster.Queue.Name);
                 }
             }
         }

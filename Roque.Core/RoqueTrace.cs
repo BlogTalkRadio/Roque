@@ -6,7 +6,7 @@
 
 using System.Diagnostics;
 
-namespace Cinchcast.Roque.Core
+namespace Cinchcast.Roque
 {
     using System;
     using System.Collections.Generic;
@@ -26,6 +26,49 @@ namespace Cinchcast.Roque.Core
     /// </summary>
     public static class RoqueTrace
     {
-        public static TraceSwitch Switch = new TraceSwitch("roque", "All Roque events");
+        /// <summary>
+        /// Roque TraceSource, name is "roque"
+        /// </summary>
+        public static TraceSource Source = new TraceSource("roque", SourceLevels.All);
+
+        /// <summary>
+        /// Trace event accepting delegates. If a parameter is a delegate (eg. Func<string>) its evaluated and the return value is used on its place.
+        /// Useful when parameters are expensive to obtain
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="eventType"></param>
+        /// <param name="format"></param>
+        /// <param name="parameters"></param>
+        public static void Trace(this TraceSource source, TraceEventType eventType, int id, string format, params object[] parameters)
+        {
+            if (source.Switch.ShouldTrace(eventType))
+            {
+                for (var i = 0; i < parameters.Length; i++)
+                {
+                    if (parameters[i] is Delegate)
+                    {
+                        parameters[i] = ((Delegate)parameters[i]).DynamicInvoke();
+                    }
+                }
+                source.TraceEvent(eventType, id, format, parameters);
+            }
+        }
+
+        /// <summary>
+        /// Trace event accepting delegates. If a parameter is a delegate (eg. Func<string>) its evaluated and the return value is used on its place.
+        /// Useful when parameters are expensive to obtain
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="eventType"></param>
+        /// <param name="format"></param>
+        /// <param name="parameters"></param>
+        public static void Trace(this TraceSource source, TraceEventType eventType, string format, params object[] parameters)
+        {
+            if (source.Switch.ShouldTrace(eventType))
+            {
+                source.Trace(eventType, -1, format, parameters);
+            }
+        }
+
     }
 }
