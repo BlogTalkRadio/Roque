@@ -131,7 +131,7 @@ namespace Cinchcast.Roque.Core
         {
             if (ProxyGenerator == null)
             {
-                ProxyGenerator = new ProxyGenerator();
+                ProxyGenerator = new ProxyGenerator(disableSignedModule: !Configuration.Roque.Settings.SignDynamicProxyModule);
             }
             return ProxyGenerator.CreateInterfaceProxyWithoutTarget(interfaceType, new[] { typeof(IEventProxy) }, new EventInterceptor());
         }

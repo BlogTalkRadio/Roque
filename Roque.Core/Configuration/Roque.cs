@@ -49,6 +49,13 @@ namespace Cinchcast.Roque.Core.Configuration
             set { this["restartOnFileChanges"] = value; }
         }
 
+        [ConfigurationProperty("signDynamicProxyModule", DefaultValue = false)]
+        public bool SignDynamicProxyModule
+        {
+            get { return (bool)this["signDynamicProxyModule"]; }
+            set { this["signDynamicProxyModule"] = value; }
+        }
+
         [ConfigurationProperty("queues")]
         public QueueCollection Queues
         {
