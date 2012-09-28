@@ -56,6 +56,13 @@ namespace Cinchcast.Roque.Core.Configuration
             set { this["signDynamicProxyModule"] = value; }
         }
 
+        [ConfigurationProperty("disableEventBroadcasting", DefaultValue = false)]
+        public bool DisableEventBroadcasting
+        {
+            get { return (bool)this["disableEventBroadcasting"]; }
+            set { this["disableEventBroadcasting"] = value; }
+        }
+
         [ConfigurationProperty("queues")]
         public QueueCollection Queues
         {

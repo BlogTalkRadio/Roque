@@ -144,6 +144,11 @@ namespace Cinchcast.Roque.Core
         /// <param name="eventName"></param>
         public void Subscribe<T>(T source, string eventName)
         {
+            if (Configuration.Roque.Settings.DisableEventBroadcasting)
+            {
+                RoqueTrace.Source.Trace(TraceEventType.Warning, "Roque event broadcasting is disabled, omitting subscription");
+                return;
+            }
             var key = Tuple.Create<Type, string>(typeof(T), eventName);
             if (!Handlers.ContainsKey(key))
             {
@@ -160,6 +165,12 @@ namespace Cinchcast.Roque.Core
         /// <param name="subscribeToInheritedInterfaces">if true and <typeparamref name="T"/> is an interface, all events in parent interfaces are used too</param>
         public void SubscribeToAll<T>(T source, bool subscribeToInheritedInterfaces = true)
         {
+            if (Configuration.Roque.Settings.DisableEventBroadcasting)
+            {
+                RoqueTrace.Source.Trace(TraceEventType.Warning, "Roque event broadcasting is disabled, omitting subscription");
+                return;
+            }
+
             List<Type> types = new List<Type>();
             types.Add(typeof(T));
 

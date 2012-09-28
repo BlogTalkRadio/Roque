@@ -199,11 +199,11 @@ namespace Cinchcast.Roque.Redis
                 string json = connection.Lists.RemoveFirstString(0, GetRedisKey("worker:{0}:inprogress", GetWorkerKey(worker))).Result;
                 if (failed)
                 {
-                    connection.Lists.AddFirst(0, GetRedisKey(":failed"), json).Wait();
+                    connection.Lists.AddFirst(0, GetRedisKey("failed"), json).Wait();
                 }
-                connection.Hashes.Remove(0, GetRedisKey("worker:{0}:state", GetWorkerKey(worker)), "currentstart");
-                connection.Hashes.Set(0, GetRedisKey("worker:{0}:state", GetWorkerKey(worker)), "lastcomplete", DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture));
-                connection.Hashes.Set(0, GetRedisKey("state"), "lastcomplete", DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture));
+                connection.Hashes.Remove(0, GetRedisKey("worker:{0}:state", GetWorkerKey(worker)), "currentstart").Wait();
+                connection.Hashes.Set(0, GetRedisKey("worker:{0}:state", GetWorkerKey(worker)), "lastcomplete", DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture)).Wait();
+                connection.Hashes.Set(0, GetRedisKey("state"), "lastcomplete", DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture)).Wait();
             }
             catch (Exception ex)
             {
