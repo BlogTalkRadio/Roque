@@ -17,6 +17,7 @@ using CLAP.Validation;
 using Cinchcast.Roque.Common;
 using Cinchcast.Roque.Core;
 using Cinchcast.Roque.Core.Configuration;
+using Cinchcast.Roque.Triggers;
 
 namespace Cinchcast.Roque.Service
 {
@@ -54,41 +55,15 @@ namespace Cinchcast.Roque.Service
         {
             var host = new WorkerHost();
             host.Start(worker);
+            var triggerHost = new TriggerHost();
+            triggerHost.Start();
             Console.WriteLine();
             Console.WriteLine("PRESS ANY KEY TO STOP");
             Console.WriteLine();
             Console.ReadKey(true);
             host.Stop();
+            triggerHost.Stop();
             Console.WriteLine("Goodbye!");
-        }
-
-        [Verb(Description = "enqueue test jobs on a queue")]
-        private static void TestEnqueue([Required]string queue, [MoreThan(0)][LessThan(100001)] uint count = 10000, bool events = false)
-        {
-            Stopwatch stopwatch = new Stopwatch();
-            if (events)
-            {
-                MyClass myObject = new MyClass();
-                RoqueEventBroadcaster broadcaster = new RoqueEventBroadcaster(queue);
-                broadcaster.SubscribeToAll<INotifyPropertyChanged>(myObject);
-                stopwatch.Start();
-                for (int i = 1; i <= count; i++)
-                {
-                    myObject.Name = "New value #" + i;
-                }
-            }
-            else
-            {
-                var traceProxy = RoqueProxyGenerator.Create<ITrace>(Queue.Get(queue));
-                stopwatch.Start();
-                for (int i = 1; i <= count; i++)
-                {
-                    traceProxy.TraceVerbose("TEST MESSAGE #" + i);
-                }
-            }
-            stopwatch.Stop();
-            Console.WriteLine("{0} jobs enqueued", count);
-            Console.WriteLine("Time elapsed: {0}", stopwatch.Elapsed);
         }
 
         [Verb(Description = "Take a look at queues current status")]
@@ -192,6 +167,58 @@ namespace Cinchcast.Roque.Service
             }
         }
 
+        [Verb(Description = "Take a look at triggers")]
+        private static void Triggers(
+            [CLAP.Description("triggers to check, or none to check all")]params string[] triggers)
+        {
+            Trigger[] triggersToCheck;
+            if (triggers == null || triggers.Length == 0)
+            {
+                triggersToCheck = Trigger.All.Triggers;
+            }
+            else
+            {
+                triggersToCheck = Trigger.All.Triggers.Where(t => triggers.Contains(t.Name)).ToArray();
+            }
+
+            foreach (var trigger in triggersToCheck)
+            {
+                Console.WriteLine(string.Format("Trigger {0}", trigger.Name));
+                Console.WriteLine(string.Format("    Type: {0}", trigger.GetType().Name));
+                Console.WriteLine(string.Format("    Queue: {0}", trigger.Queue.Name));
+
+                Job job = trigger.JobCreator();
+
+                Console.WriteLine(string.Format("    Target: {0}", job.Target));
+                Console.WriteLine(string.Format("    Method: {0}", job.Method));
+                foreach (var argument in job.Arguments)
+                {
+                    Console.WriteLine(string.Format("    Argument: {0}", argument));
+                }
+
+                DateTime? lastExecution = trigger.GetLastExecution();
+                DateTime? nextExecution = trigger.GetNextExecution();
+
+                Console.WriteLine(string.Format("    Last Execution: {0}", lastExecution == null ? "unknown" : lastExecution.ToString() + " GMT"));
+                if (nextExecution != null)
+                {
+                    Console.WriteLine(string.Format("      ({0}ago)", Job.AgeToString(DateTime.UtcNow.Subtract(lastExecution.Value))));
+                }
+                Console.WriteLine(string.Format("    Next Execution: {0}", nextExecution == null ? "unknown" : nextExecution.ToString() + " GMT"));
+                if (nextExecution != null)
+                {
+                    if (nextExecution <= DateTime.UtcNow)
+                    {
+                        Console.WriteLine(string.Format("      Should run soon. ({0}overdue)", Job.AgeToString(DateTime.UtcNow.Subtract(nextExecution.Value))));
+                    }
+                    else
+                    {
+                        Console.WriteLine(string.Format("      (in {0})", Job.AgeToString(nextExecution.Value.Subtract(DateTime.UtcNow))));
+                    }
+                }
+            }
+        }
+
         [Verb(Description = "Copy roque binaries to another folder")]
         private static void CopyBinaries([CLAP.Description("target folder, by default is current folder")]string path,
             [CLAP.Description("overwrite files, even if target is up to date")] bool force = false,
@@ -243,6 +270,35 @@ namespace Cinchcast.Roque.Service
                     throw;
                 }
             }
+        }
+
+        [Verb(Description = "enqueue test jobs on a queue")]
+        private static void DoTestEnqueue([Required]string queue, [MoreThan(0)][LessThan(100001)] uint count = 10000, bool events = false)
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            if (events)
+            {
+                MyClass myObject = new MyClass();
+                RoqueEventBroadcaster broadcaster = new RoqueEventBroadcaster(queue);
+                broadcaster.SubscribeToAll<INotifyPropertyChanged>(myObject);
+                stopwatch.Start();
+                for (int i = 1; i <= count; i++)
+                {
+                    myObject.Name = "New value #" + i;
+                }
+            }
+            else
+            {
+                var traceProxy = RoqueProxyGenerator.Create<ITrace>(Queue.Get(queue));
+                stopwatch.Start();
+                for (int i = 1; i <= count; i++)
+                {
+                    traceProxy.TraceVerbose("TEST MESSAGE #" + i);
+                }
+            }
+            stopwatch.Stop();
+            Console.WriteLine("{0} jobs enqueued", count);
+            Console.WriteLine("Time elapsed: {0}", stopwatch.Elapsed);
         }
 
         private static void CopyBinaryFiles(DirectoryInfo sourceDir, DirectoryInfo targetDir, bool force = false, bool silent = false)

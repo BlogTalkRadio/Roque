@@ -39,5 +39,15 @@ namespace Cinchcast.Roque.Common
         {
             RoqueTrace.Source.Trace(TraceEventType.Warning, format, arguments);
         }
+
+        public void TracePing()
+        {
+            RoqueTrace.Source.Trace(TraceEventType.Information, "ping");
+        }
+
+        public void TraceInformationString(string message)
+        {
+            RoqueTrace.Source.Trace(TraceEventType.Information, message);
+        }
     }
 }

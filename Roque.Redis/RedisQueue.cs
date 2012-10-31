@@ -29,11 +29,18 @@ namespace Cinchcast.Roque.Redis
         /// </summary>
         public static string QueuePrefix = "roque:";
 
-        private RedisConnection _Connection;
+        private RedisLiveConnection _Connection;
 
-        public RedisConnection Connection
+        public RedisLiveConnection Connection
         {
-            get { return _Connection; }
+            get
+            {
+                if (_Connection == null)
+                {
+                    _Connection = new RedisLiveConnection(Settings);
+                }
+                return _Connection;
+            }
         }
 
         private object syncConnection = new object();
@@ -51,47 +58,6 @@ namespace Cinchcast.Roque.Redis
         public RedisQueue(string name, IDictionary<string, string> setings)
             : base(name, setings)
         {
-        }
-
-        protected RedisConnection GetOpenConnection()
-        {
-            lock (syncConnection)
-            {
-                if (_Connection != null && !(_Connection.State == RedisConnectionBase.ConnectionState.Closed || _Connection.State == RedisConnectionBase.ConnectionState.Closing))
-                {
-                    return _Connection;
-                }
-
-                if (_Connection == null || (_Connection.State == RedisConnectionBase.ConnectionState.Closed || _Connection.State == RedisConnectionBase.ConnectionState.Closing))
-                {
-                    string host = null;
-                    int port = 0;
-                    int timeout;
-                    try
-                    {
-                        if (!Settings.TryGet("host", out host))
-                        {
-                            throw new Exception("Redis host is required");
-                        }
-                        port = Settings.Get("port", 6379);
-                        timeout = Settings.Get("timeout", 2000);
-
-                        RoqueTrace.Source.Trace(TraceEventType.Information, "[REDIS] connecting to {0}:{1}", host, port);
-
-                        _Connection = new RedisConnection(host, port, timeout);
-                        var openAsync = _Connection.Open();
-                        _Connection.Wait(openAsync);
-
-                        RoqueTrace.Source.Trace(TraceEventType.Information, "[REDIS] connected");
-                    }
-                    catch (Exception ex)
-                    {
-                        RoqueTrace.Source.Trace(TraceEventType.Error, "[REDIS] error connecting to {0}:{1}, {2}", host, port, ex.Message, ex);
-                        throw;
-                    }
-                }
-                return _Connection;
-            }
         }
 
         protected virtual string GetRedisKey(string suffixFormat = null, params object[] parameters)
@@ -118,12 +84,12 @@ namespace Cinchcast.Roque.Redis
 
         protected override void EnqueueJson(string data)
         {
-            GetOpenConnection().Lists.AddFirst(0, GetRedisKey(), data).Wait();
+            Connection.GetOpen().Lists.AddFirst(0, GetRedisKey(), data).Wait();
         }
 
         protected override string DequeueJson(Worker worker, int timeoutSeconds)
         {
-            var connection = GetOpenConnection();
+            var connection = Connection.GetOpen();
 
             // move job from queue to worker in progress
             string data = connection.Lists.BlockingRemoveLastAndAddFirstString(0, GetRedisKey(), GetRedisKey("worker:{0}:inprogress", GetWorkerKey(worker)), timeoutSeconds).Result;
@@ -144,7 +110,7 @@ namespace Cinchcast.Roque.Redis
 
         protected override string PeekJson(out long length)
         {
-            var connection = GetOpenConnection();
+            var connection = Connection.GetOpen();
 
             string data = connection.Lists.GetString(0, GetRedisKey(), -1).Result;
             if (data == null)
@@ -160,7 +126,7 @@ namespace Cinchcast.Roque.Redis
 
         protected override DateTime? DoGetTimeOfLastJobCompleted()
         {
-            var connection = GetOpenConnection();
+            var connection = Connection.GetOpen();
 
             string data = connection.Hashes.GetString(0, GetRedisKey("state"), "lastcomplete").Result;
             if (string.IsNullOrEmpty(data))
@@ -175,7 +141,7 @@ namespace Cinchcast.Roque.Redis
 
         public string GetInProgressJson(Worker worker)
         {
-            var connection = GetOpenConnection();
+            var connection = Connection.GetOpen();
             string data = connection.Lists.GetString(0, GetRedisKey("worker:{0}:inprogress", GetWorkerKey(worker)), 0).Result;
             if (data != null)
             {
@@ -195,7 +161,7 @@ namespace Cinchcast.Roque.Redis
         {
             try
             {
-                var connection = GetOpenConnection();
+                var connection = Connection.GetOpen();
                 string json = connection.Lists.RemoveFirstString(0, GetRedisKey("worker:{0}:inprogress", GetWorkerKey(worker))).Result;
                 if (failed)
                 {
@@ -219,7 +185,7 @@ namespace Cinchcast.Roque.Redis
 
         protected override void DoReportEventSubscription(string sourceQueue, string target, string eventName)
         {
-            var connection = GetOpenConnection();
+            var connection = Connection.GetOpen();
             var added = connection.SortedSets.Add(0, GetRedisKeyForQueue(sourceQueue, "events:{0}:{1}:subscribers", target, eventName), Name, 0).Result;
             if (added)
             {
@@ -246,7 +212,7 @@ namespace Cinchcast.Roque.Redis
             {
                 if (connection == null)
                 {
-                    connection = GetOpenConnection();
+                    connection = Connection.GetOpen();
                 }
                 _SubscribedToSubscribersChangesChannel = connection.GetOpenSubscriberChannel();
                 _SubscribedToSubscribersChangesChannel.Subscribe(GetRedisKey("events:subscriberschanges"), (message, bytes) =>
@@ -266,7 +232,7 @@ namespace Cinchcast.Roque.Redis
             {
                 if (connection == null)
                 {
-                    connection = GetOpenConnection();
+                    connection = Connection.GetOpen();
                 }
                 subscribers = connection.SortedSets.Range(0, GetRedisKey("events:{0}:subscribers", eventKey), 0, -1).Result
                     .Select(set => Encoding.UTF8.GetString(set.Key)).ToArray();
@@ -277,7 +243,7 @@ namespace Cinchcast.Roque.Redis
 
         protected override void EnqueueJsonEvent(string data, string target, string eventName)
         {
-            var connection = GetOpenConnection();
+            var connection = Connection.GetOpen();
 
             var subscribers = GetSubscribersForEvent(target, eventName);
 
@@ -307,7 +273,7 @@ namespace Cinchcast.Roque.Redis
 
         public override IDictionary<string, string[]> GetSubscribers()
         {
-            var connection = GetOpenConnection();
+            var connection = Connection.GetOpen();
             var keys = connection.Keys.Find(0, GetRedisKey("events:*:subscribers")).Result;
             var keyRegex = new Regex("^" + GetRedisKey("events:(.*):subscribers$"));
             var subscribers = new Dictionary<string, string[]>();

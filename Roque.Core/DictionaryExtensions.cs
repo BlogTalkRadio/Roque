@@ -51,8 +51,13 @@ namespace Cinchcast.Roque.Core
 
             if (!typeof(IConvertible).IsAssignableFrom(type))
                 throw new Exception("The type does not implement the IConvertible interface");
-
-            return (TOutputValue)Convert.ChangeType(dict[key], type);
+            try
+            {
+                return (TOutputValue)Convert.ChangeType(dict[key], type);                
+            }catch(KeyNotFoundException ex)
+            {
+                throw new KeyNotFoundException(ex.Message + " Key: " + key, ex);
+            }
         }
 
         public static TOutputValue Get<TOutputValue, TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, TOutputValue defaultValue)

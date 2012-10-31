@@ -309,6 +309,54 @@ You can check event subscriptions by running ```roque.exe events```
     Queue _events has 1 event with subscribers
        Acme.MySite.Biz.IUserEvents:UserSignedUp is observed by images, greetings
 
+## Triggers
+
+You can configure triggers on your workers to enqueue specific jobs (a method call) based on different type of events. Custom triggers can be created, Roque includes a Schedule Trigger.
+
+Triggers only work with Redis based queues.
+
+Redundancy: If you configure the same trigger (same name) on multiple workers they coordinate to give you redundancy (don't worry, you won't get duplicated jobs).
+
+### Schedule Trigger
+
+Schedule trigger accept schedules using [cron syntax](http://en.wikipedia.org/wiki/Cron) (```* , - /``` characters are supported). 
+
+When the time comes a method call job will be enqueued. Example configuration:
+
+``` xml
+
+    <roque>
+        <queues>
+            <queue name="main" type="Cinchcast.Roque.Redis.RedisQueue, Roque.Redis">
+                <settings>
+                    <setting key="host" value="localhost"/>
+                </settings>
+            </queue>
+        </queues>
+        <triggers>
+            <!-- check that logging is working every 5 minutes, from mon to fri --> 
+            <!-- using optional JSON serialized argument, otherwise the method must be parameter-less --> 
+            <trigger name="CheckTrace" type="Cinchcast.Roque.Triggers.ScheduleTrigger, Roque.Triggers" 
+                     queue="main" 
+                     targetTypeFullName="Cinchcast.Roque.Common.Trace, Roque.Common.Services"
+                     targetMethodName="TraceInformationString" 
+                     targetArgument="'testing...'">
+                <settings>
+                    <!-- cron syntax, if this is new for you, you can use http://www.abunchofutils.com/utils/developer/cron-expression-helper/ --> 
+                    <setting key="schedule" value="*/5 * * * 1-5" />
+                </settings>
+            </trigger>
+        </triggers>
+    </roque>
+
+```
+
+You can check the state of all triggers by running ```roque.exe triggers```
+
+### FileWatcher Trigger
+
+Coming Soon. Pull requests are welcome.
+
 ## Requirements
 
 - Microsoft .Net Framework 4.0
@@ -352,6 +400,10 @@ For detailed instructions on creating and deploying workers check [README.worker
 - Supports 2 message queue patterns:
   - Work queues (by invoking methods). eg. request the execution of a job asynchronously.
   - Message broadcasting (pub/sub) in front of work queues (by raising events). eg. notify multiple subscriptors that perform jobs on specific events.
+- Scheduled triggers. Set schedules on workers to enqueue specific jobs. 
+  - Supports cron syntax
+  - Configure schedules on multiple workers to get redundancy. Only one job will be enqueued each time.
+  - Optionally, a parameter for the invoked method can be specified in config (in JSON format)
 
 ## Queue Patterns
 

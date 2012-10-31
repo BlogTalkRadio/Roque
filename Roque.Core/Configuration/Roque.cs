@@ -89,6 +89,14 @@ namespace Cinchcast.Roque.Core.Configuration
                 return this["subscribers"] as SubscriberCollection;
             }
         }
-
+        
+        [ConfigurationProperty("triggers")]
+        public TriggerCollection Triggers
+        {
+            get
+            {
+                return this["triggers"] as TriggerCollection;
+            }
+        }
     }
 }

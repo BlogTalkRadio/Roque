@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Roque.Worker</id>
-    <version>1.0.12</version>
+    <version>1.0.13</version>
     <authors>benjamineidelman@blogtalkradio.com</authors>
     <owners>benjamineidelman@blogtalkradio.com</owners>
     <licenseUrl>https://raw.github.com/benjamine/Roque/master/MIT-LICENSE.txt</licenseUrl>
@@ -15,12 +15,13 @@
     <references>
       <reference file="Roque.Core.dll"/>
       <reference file="Roque.Redis.dll"/>
+      <reference file="Roque.Triggers.dll"/>
     </references>
     <dependencies>
       <dependency id="Castle.Core" version="3.1.0" />
       <dependency id="Castle.Windsor" version="3.1.0"/>
-      <dependency id="Newtonsoft.Json" version="4.5.9" />
-      <dependency id="BookSleeve" version="1.1.0.8"  />
+      <dependency id="Newtonsoft.Json" version="4.5.10" />
+      <dependency id="BookSleeve" version="1.2.0.2"  />
       <dependency id="CLAP" version="4.3" />
     </dependencies>
   </metadata>
@@ -28,9 +29,9 @@
     <!-- libraries required on producer side-->
     <file src="Roque.Core.dll" target="lib\net40"/>
     <file src="Roque.Redis.dll" target="lib\net40"/>
+    <file src="Roque.Triggers.dll" target="lib\net40"/>
     <file src="Roque.Common.Interfaces.dll" target="lib\net40"/>
     <file src="Roque.Common.Services.dll" target="lib\net40"/>
-
 
     <!-- README for worker projects -->
     <file src="WorkerUtils\README.worker.md" target="content" />
@@ -40,6 +41,7 @@
     <file src="Roque.exe.config" target="tools"/>
     <file src="Roque.Core.dll" target="tools"/>
     <file src="Roque.Redis.dll" target="tools"/>
+    <file src="Roque.Triggers.dll" target="tools"/>
     <file src="Roque.Common.Interfaces.dll" target="tools"/>
     <file src="Roque.Common.Services.dll" target="tools"/>
     

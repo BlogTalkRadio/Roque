@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Roque</id>
-    <version>1.0.12</version>
+    <version>1.0.13</version>
     <authors>benjamineidelman@blogtalkradio.com</authors>
     <owners>benjamineidelman@blogtalkradio.com</owners>
     <licenseUrl>https://raw.github.com/benjamine/Roque/master/MIT-LICENSE.txt</licenseUrl>
@@ -19,8 +19,8 @@
     <dependencies>
       <dependency id="Castle.Core" version="3.1.0" />
       <dependency id="Castle.Windsor" version="3.1.0"/>
-      <dependency id="Newtonsoft.Json" version="4.5.9" />
-      <dependency id="BookSleeve" version="1.1.0.8"  />
+      <dependency id="Newtonsoft.Json" version="4.5.10" />
+      <dependency id="BookSleeve" version="1.2.0.2"  />
     </dependencies>
   </metadata>
   <files>

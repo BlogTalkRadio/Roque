@@ -108,6 +108,10 @@
       <Project>{49C2F079-2505-4763-932E-47E5DF1BB958}</Project>
       <Name>Roque.Redis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Roque.Triggers\Roque.Triggers.csproj">
+      <Project>{f2e36a78-f559-4a95-8a5d-bdb366a9e471}</Project>
+      <Name>Roque.Triggers</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">
