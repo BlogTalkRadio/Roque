@@ -47,6 +47,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\GlobalAssemblyInfo.cs">
+      <Link>Properties\GlobalAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="FileWatcherTrigger.cs" />
+    <Compile Include="IntervalTrigger.cs" />
     <Compile Include="Schedule.cs" />
     <Compile Include="ScheduleTrigger.cs" />
     <Compile Include="Trigger.cs" />

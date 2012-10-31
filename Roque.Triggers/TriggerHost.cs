@@ -7,6 +7,9 @@ using Cinchcast.Roque.Service;
 
 namespace Cinchcast.Roque.Triggers
 {
+    /// <summary>
+    /// Hosts a TriggerWatcher into a separate AppDomain
+    /// </summary>
     public class TriggerHost : AppDomainHost<TriggerHost.TriggerProcess>
     {
         public class TriggerProcess : AppDomainHost.Process

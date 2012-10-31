@@ -169,51 +169,77 @@ namespace Cinchcast.Roque.Service
 
         [Verb(Description = "Take a look at triggers")]
         private static void Triggers(
-            [CLAP.Description("triggers to check, or none to check all")]params string[] triggers)
+            [CLAP.Description("force execution of specified trigger(s)")]bool forceExecution = false,
+            [CLAP.Description("triggers to include, or none to include all")]params string[] triggers)
         {
             Trigger[] triggersToCheck;
             if (triggers == null || triggers.Length == 0)
             {
+                if (forceExecution)
+                {
+                    Console.WriteLine("Please specify the triggers to execute.");
+                    return;
+                }
                 triggersToCheck = Trigger.All.Triggers;
             }
             else
             {
                 triggersToCheck = Trigger.All.Triggers.Where(t => triggers.Contains(t.Name)).ToArray();
             }
-
-            foreach (var trigger in triggersToCheck)
+            if (triggersToCheck.Length < 1)
             {
-                Console.WriteLine(string.Format("Trigger {0}", trigger.Name));
-                Console.WriteLine(string.Format("    Type: {0}", trigger.GetType().Name));
-                Console.WriteLine(string.Format("    Queue: {0}", trigger.Queue.Name));
-
-                Job job = trigger.JobCreator();
-
-                Console.WriteLine(string.Format("    Target: {0}", job.Target));
-                Console.WriteLine(string.Format("    Method: {0}", job.Method));
-                foreach (var argument in job.Arguments)
+                Console.WriteLine("No triggers were found.");
+            }
+            else
+            {
+                foreach (var trigger in triggersToCheck)
                 {
-                    Console.WriteLine(string.Format("    Argument: {0}", argument));
-                }
+                    Console.WriteLine(string.Format("Trigger {0}", trigger.Name));
+                    Console.WriteLine(string.Format("    Type: {0}", trigger.GetType().Name));
+                    Console.WriteLine(string.Format("    Queue: {0}", trigger.Queue.Name));
 
-                DateTime? lastExecution = trigger.GetLastExecution();
-                DateTime? nextExecution = trigger.GetNextExecution();
+                    Job job = trigger.JobCreator();
 
-                Console.WriteLine(string.Format("    Last Execution: {0}", lastExecution == null ? "unknown" : lastExecution.ToString() + " GMT"));
-                if (nextExecution != null)
-                {
-                    Console.WriteLine(string.Format("      ({0}ago)", Job.AgeToString(DateTime.UtcNow.Subtract(lastExecution.Value))));
-                }
-                Console.WriteLine(string.Format("    Next Execution: {0}", nextExecution == null ? "unknown" : nextExecution.ToString() + " GMT"));
-                if (nextExecution != null)
-                {
-                    if (nextExecution <= DateTime.UtcNow)
+                    Console.WriteLine(string.Format("    Target: {0}", job.Target));
+                    Console.WriteLine(string.Format("    Method: {0}", job.Method));
+                    foreach (var argument in job.Arguments)
                     {
-                        Console.WriteLine(string.Format("      Should run soon. ({0}overdue)", Job.AgeToString(DateTime.UtcNow.Subtract(nextExecution.Value))));
+                        Console.WriteLine(string.Format("    Argument: {0}", argument));
                     }
-                    else
+
+                    DateTime? lastExecution = trigger.GetLastExecution();
+                    DateTime? nextExecution = trigger.GetNextExecution();
+
+                    Console.WriteLine(string.Format("    Last Execution: {0}",
+                                                    lastExecution == null
+                                                        ? "unknown"
+                                                        : lastExecution.ToString() + " GMT"));
+                    if (lastExecution != null)
                     {
-                        Console.WriteLine(string.Format("      (in {0})", Job.AgeToString(nextExecution.Value.Subtract(DateTime.UtcNow))));
+                        Console.WriteLine(string.Format("      ({0}ago)",
+                                                    Job.AgeToString(DateTime.UtcNow.Subtract(lastExecution.Value))));
+                    }
+                    Console.WriteLine(string.Format("    Next Execution: {0}",
+                                                    nextExecution == null
+                                                        ? "unknown"
+                                                        : nextExecution.ToString() + " GMT"));
+                    if (nextExecution != null)
+                    {
+                        if (nextExecution <= DateTime.UtcNow)
+                        {
+                            Console.WriteLine(string.Format("      Should run soon. ({0}overdue)",
+                                                            Job.AgeToString(DateTime.UtcNow.Subtract(nextExecution.Value))));
+                        }
+                        else
+                        {
+                            Console.WriteLine(string.Format("      (in {0})",
+                                                            Job.AgeToString(nextExecution.Value.Subtract(DateTime.UtcNow))));
+                        }
+                    }
+
+                    if (forceExecution)
+                    {
+                        trigger.Execute(true);
                     }
                 }
             }

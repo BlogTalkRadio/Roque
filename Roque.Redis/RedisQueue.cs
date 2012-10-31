@@ -27,7 +27,7 @@ namespace Cinchcast.Roque.Redis
         /// <summary>
         /// prefix for queues names in Redis
         /// </summary>
-        public static string QueuePrefix = "roque:";
+        public static string RedisNamespace = "roque:";
 
         private RedisLiveConnection _Connection;
 
@@ -67,7 +67,8 @@ namespace Cinchcast.Roque.Redis
 
         protected virtual string GetRedisKeyForQueue(string queueName, string suffixFormat = null, params object[] parameters)
         {
-            var key = new StringBuilder(QueuePrefix);
+            var key = new StringBuilder(RedisNamespace);
+            key.Append("q:");
             key.Append(queueName);
             if (!string.IsNullOrEmpty(suffixFormat))
             {

@@ -6,10 +6,7 @@ using System.Text;
 namespace Cinchcast.Roque.Triggers
 {
     /// <summary>
-    /// Fluent interface to build schedules.
-    /// Examples:
-    ///     Schedule.Every(TimeSpan.FromHours(2)).AtMinute(5);
-    ///     Schedule.Daily().At(6,30);
+    /// Creates Schedules for ScheduleTrigger, parses cron expressions
     /// </summary>
     public class Schedule
     {
@@ -134,7 +131,6 @@ namespace Cinchcast.Roque.Triggers
 
             return true;
         }
-
 
         public bool IsValidExecutionDay(DateTime time)
         {

@@ -13,6 +13,9 @@ using Cinchcast.Roque.Redis;
 
 namespace Cinchcast.Roque.Triggers
 {
+    /// <summary>
+    /// Base class for triggers, that when executed add a job to a Queue.
+    /// </summary>
     public class Trigger
     {
         private static TriggerWatcher _All;
@@ -86,6 +89,20 @@ namespace Cinchcast.Roque.Triggers
                     }
                     return job;
                 };
+
+            // update trigger info on redis
+            var connection = _Connection.GetOpen();
+            connection.Hashes.Set(0, GetRedisKey("info"), "type", this.GetType().FullName).Wait();
+            connection.Hashes.Set(0, GetRedisKey("info"), "queue", queue).Wait();
+            connection.Hashes.Set(0, GetRedisKey("info"), "targetTypeFullName", targetTypeFullName).Wait();
+            connection.Hashes.Set(0, GetRedisKey("info"), "targetMethodName", targetMethodName).Wait();
+            connection.Hashes.Set(0, GetRedisKey("info"), "targetArgument", targetArgument).Wait();
+            connection.Hashes.Set(0, GetRedisKey("info"), "lastupdate", DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture)).Wait();
+            connection.Keys.Remove(0, GetRedisKey("settings")).Wait();
+            foreach (var setting in settings)
+            {
+                connection.Hashes.Set(0, GetRedisKey("settings"), setting.Key, setting.Value).Wait();
+            }
         }
 
         public DateTime? GetLastExecution()
@@ -128,14 +145,15 @@ namespace Cinchcast.Roque.Triggers
             Active = false;
         }
 
-        protected virtual string GetRedisKey(string suffixFormat = null, params object[] parameters)
+        protected string GetRedisKey(string suffixFormat = null, params object[] parameters)
         {
             return GetRedisKeyForTrigger(Name, suffixFormat, parameters);
         }
 
-        protected virtual string GetRedisKeyForTrigger(string triggerName, string suffixFormat = null, params object[] parameters)
+        protected string GetRedisKeyForTrigger(string triggerName, string suffixFormat = null, params object[] parameters)
         {
-            var key = new StringBuilder(RedisQueue.QueuePrefix);
+            var key = new StringBuilder(RedisQueue.RedisNamespace);
+            key.Append("t:");
             key.Append(triggerName);
             if (!string.IsNullOrEmpty(suffixFormat))
             {
@@ -153,7 +171,7 @@ namespace Cinchcast.Roque.Triggers
         {
         }
 
-        public virtual DateTime? GetNextExecution()
+        public DateTime? GetNextExecution()
         {
             return GetNextExecution(GetLastExecution());
         }
@@ -247,11 +265,11 @@ namespace Cinchcast.Roque.Triggers
             }
         }
 
-        protected virtual bool EnqueueJob()
+        protected bool EnqueueJob()
         {
             try
             {
-                Job job = JobCreator();
+                var job = JobCreator();
                 bool enqueued = Queue.Enqueue(job);
                 RoqueTrace.Source.TraceEvent(TraceEventType.Information, -1, "Trigger enqueued job: {0}.{1}. Type: {2}, Name: {3}", job.Target, job.Method, GetType().Name, Name);
                 return enqueued;
@@ -262,6 +280,5 @@ namespace Cinchcast.Roque.Triggers
                 return false;
             }
         }
-
     }
 }

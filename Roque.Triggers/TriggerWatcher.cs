@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Cinchcast.Roque.Triggers
 {
+    /// <summary>
+    /// Watchs a set of Triggers executing them when time comes.
+    /// </summary>
     public class TriggerWatcher
     {
         public Trigger[] Triggers { get; private set; }

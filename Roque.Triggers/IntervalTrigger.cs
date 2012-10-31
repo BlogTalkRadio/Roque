@@ -8,9 +8,9 @@ using Cinchcast.Roque.Redis;
 namespace Cinchcast.Roque.Triggers
 {
     /// <summary>
-    /// Trigger that executes based on a schedule (supports cron syntax)
+    /// Trugger that executes every N seconds
     /// </summary>
-    public class ScheduleTrigger : Trigger
+    public class IntervalTrigger : Trigger
     {
         protected Func<DateTime?, DateTime?> NextExecutionGetter;
 
@@ -18,8 +18,12 @@ namespace Cinchcast.Roque.Triggers
         {
             if (NextExecutionGetter == null)
             {
-                var schedule = Schedule.Create(Settings.Get<string, string, string>("schedule"));
-                NextExecutionGetter = schedule.GetNextExecution;
+                var interval = Settings.Get("intervalSeconds", 30);
+                if (interval <= 0)
+                {
+                    throw new Exception("Interval must be bigger than zero");
+                }
+                NextExecutionGetter = (lastExec) => (lastExec ?? DateTime.UtcNow).AddSeconds(interval);
             }
 
             return NextExecutionGetter(lastExecution);

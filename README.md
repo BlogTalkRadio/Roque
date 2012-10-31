@@ -351,11 +351,46 @@ When the time comes a method call job will be enqueued. Example configuration:
 
 ```
 
-You can check the state of all triggers by running ```roque.exe triggers```
+You can check the state of all triggers by running ```roque.exe triggers```.
+
+A forced execution can be done with  ```roque.exe triggers /t=MyTrigger /f```.
+
+### IntervalWatcher Trigger
+
+This simple trigger executes every N seconds. Allows bigger frequencies than ScheduleTrigger (ie. more than once a minute).
+
+``` xml
+
+            <trigger name="CrazyLogging" type="Cinchcast.Roque.Triggers.IntervalTrigger, Roque.Triggers" 
+                     queue="main" 
+                     targetTypeFullName="Cinchcast.Roque.Common.Trace, Roque.Common.Services"
+                     targetMethodName="TraceInformationString" 
+                     targetArgument="'another 10 seconds passed'">
+                <settings>
+                    <setting key="intervalSeconds" value="10" />
+                </settings>
+            </trigger>
+
+```
 
 ### FileWatcher Trigger
 
-Coming Soon. Pull requests are welcome.
+Will trigger when a file is created or modified in a folder. You must specify an interval for checking the folder content, default is 30s.
+
+``` xml
+
+            <trigger name="CheckForNewFiles" type="Cinchcast.Roque.Triggers.FileWatcherTrigger, Roque.Triggers" 
+                     queue="main" 
+                     targetTypeFullName="Cinchcast.Roque.Common.Trace, Roque.Common.Services"
+                     targetMethodName="TraceInformationString" 
+                     targetArgument="'A file was created or modified'">
+                <settings>
+                    <setting key="folder" value="C:\FileInbox" />
+                    <setting key="intervalSeconds" value="10" />
+                </settings>
+            </trigger>
+
+```
 
 ## Requirements
 
