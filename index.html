@@ -16,14 +16,14 @@
     <!-- HEADER -->
     <div id="header_wrap" class="outer">
         <header class="inner">
-          <a id="forkme_banner" href="https://github.com/benjamine/Roque">View on GitHub</a>
+          <a id="forkme_banner" href="https://github.com/cinchcast/Roque">View on GitHub</a>
 
           <h1 id="project_title">Roque</h1>
           <h2 id="project_tagline">event &amp; work queueing framework for .Net</h2>
 
             <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/benjamine/Roque/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/benjamine/Roque/tarball/master">Download this project as a tar.gz file</a>
+              <a class="zip_download_link" href="https://github.com/cinchcast/Roque/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/cinchcast/Roque/tarball/master">Download this project as a tar.gz file</a>
             </section>
         </header>
     </div>
@@ -127,7 +127,7 @@
         <span class="nt">&lt;/queues&gt;</span>
         <span class="nt">&lt;workers&gt;</span>
           <span class="c">&lt;!-- a worker poping jobs from "images" queue --&gt;</span> 
-          <span class="nt">&lt;worker</span> <span class="na">name=</span><span class="s">"main"</span> <span class="na">queue=</span><span class="s">"images"</span><span class="nt">/&gt;</span>
+          <span class="nt">&lt;worker</span> <span class="na">name=</span><span class="s">"images"</span> <span class="na">queue=</span><span class="s">"images"</span> <span class="na">autoStart=</span><span class="s">"true"</span><span class="nt">/&gt;</span>
         <span class="nt">&lt;/workers&gt;</span>    
       <span class="nt">&lt;/roque&gt;</span>
       <span class="nt">&lt;castle&gt;</span>
@@ -285,14 +285,14 @@ ERROR: 1 queue have too old pending jobs
         <span class="nt">&lt;/queues&gt;</span>
         <span class="nt">&lt;workers&gt;</span>
           <span class="c">&lt;!-- a worker poping jobs from "images" queue --&gt;</span> 
-          <span class="nt">&lt;worker</span> <span class="na">name=</span><span class="s">"main"</span> <span class="na">queue=</span><span class="s">"images"</span><span class="nt">&gt;</span>
+          <span class="nt">&lt;worker</span> <span class="na">name=</span><span class="s">"images"</span> <span class="na">queue=</span><span class="s">"images"</span> <span class="na">autoStart=</span><span class="s">"true"</span><span class="nt">&gt;</span>
             <span class="nt">&lt;subscribers&gt;</span>
                 <span class="c">&lt;!-- all events that ThumbnailCreator subscribes to will be broadcasted to this worker's queue (images) --&gt;</span> 
                 <span class="nt">&lt;subscriber</span> <span class="na">type=</span><span class="s">"Acme.Images.ThumbnailCreator, Acme.Images"</span><span class="nt">/&gt;</span>
             <span class="nt">&lt;/subscribers&gt;</span>
           <span class="nt">&lt;/worker&gt;</span>
           <span class="c">&lt;!-- a worker poping jobs from "greettings" queue --&gt;</span> 
-          <span class="nt">&lt;worker</span> <span class="na">name=</span><span class="s">"main"</span> <span class="na">queue=</span><span class="s">"greetings"</span><span class="nt">&gt;</span>
+          <span class="nt">&lt;worker</span> <span class="na">name=</span><span class="s">"greetings"</span> <span class="na">queue=</span><span class="s">"greetings"</span> <span class="na">autoStart=</span><span class="s">"true"</span><span class="nt">&gt;</span>
             <span class="nt">&lt;subscribers&gt;</span>
                 <span class="c">&lt;!-- all events that UserGreeter subscribes to will be broadcasted to this worker's queue (greetings) --&gt;</span> 
                 <span class="nt">&lt;subscriber</span> <span class="na">type=</span><span class="s">"Acme.Messaging.UserGreeter, Acme.Messaging"</span><span class="nt">/&gt;</span>
@@ -335,21 +335,77 @@ Queue _events has 1 event with subscribers
    Acme.MySite.Biz.IUserEvents:UserSignedUp is observed by images, greetings
 </code></pre>
 
-<h2>Benchmarks</h2>
+<h2>Triggers</h2>
 
-<p>On a very preliminar and simple benchmark with this conditions:</p>
+<p>You can configure triggers on your workers to enqueue specific jobs (a method call) based on different type of events. Custom triggers can be created, Roque includes a Schedule Trigger.</p>
+
+<p>Triggers only work with Redis based queues.</p>
+
+<p>Redundancy: If you configure the same trigger (same name) on multiple workers they coordinate to give you redundancy (don't worry, you won't get duplicated jobs).</p>
+
+<h3>Schedule Trigger</h3>
+
+<p>Schedule trigger accept schedules using <a href="http://en.wikipedia.org/wiki/Cron">cron syntax</a> (<code>* , - /</code> characters are supported). </p>
+
+<p>When the time comes a method call job will be enqueued. Example configuration:</p>
+
+<div class="highlight"><pre>
+    <span class="nt">&lt;roque&gt;</span>
+        <span class="nt">&lt;queues&gt;</span>
+            <span class="nt">&lt;queue</span> <span class="na">name=</span><span class="s">"main"</span> <span class="na">type=</span><span class="s">"Cinchcast.Roque.Redis.RedisQueue, Roque.Redis"</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;settings&gt;</span>
+                    <span class="nt">&lt;setting</span> <span class="na">key=</span><span class="s">"host"</span> <span class="na">value=</span><span class="s">"localhost"</span><span class="nt">/&gt;</span>
+                <span class="nt">&lt;/settings&gt;</span>
+            <span class="nt">&lt;/queue&gt;</span>
+        <span class="nt">&lt;/queues&gt;</span>
+        <span class="nt">&lt;triggers&gt;</span>
+            <span class="c">&lt;!-- check that logging is working every 5 minutes, from mon to fri --&gt;</span> 
+            <span class="c">&lt;!-- using optional JSON serialized argument, otherwise the method must be parameter-less --&gt;</span> 
+            <span class="nt">&lt;trigger</span> <span class="na">name=</span><span class="s">"CheckTrace"</span> <span class="na">type=</span><span class="s">"Cinchcast.Roque.Triggers.ScheduleTrigger, Roque.Triggers"</span> 
+                     <span class="na">queue=</span><span class="s">"main"</span> 
+                     <span class="na">targetTypeFullName=</span><span class="s">"Cinchcast.Roque.Common.Trace, Roque.Common.Services"</span>
+                     <span class="na">targetMethodName=</span><span class="s">"TraceInformationString"</span> 
+                     <span class="na">targetArgument=</span><span class="s">"'testing...'"</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;settings&gt;</span>
+                    <span class="c">&lt;!-- cron syntax, if this is new for you, you can use http://www.abunchofutils.com/utils/developer/cron-expression-helper/ --&gt;</span> 
+                    <span class="nt">&lt;setting</span> <span class="na">key=</span><span class="s">"schedule"</span> <span class="na">value=</span><span class="s">"*/5 * * * 1-5"</span> <span class="nt">/&gt;</span>
+                <span class="nt">&lt;/settings&gt;</span>
+            <span class="nt">&lt;/trigger&gt;</span>
+        <span class="nt">&lt;/triggers&gt;</span>
+    <span class="nt">&lt;/roque&gt;</span>
+
+</pre></div>
+
+<p>You can check the state of all triggers by running <code>roque.exe triggers</code></p>
+
+<h3>FileWatcher Trigger</h3>
+
+<p>Coming Soon. Pull requests are welcome.</p>
+
+<h2>Requirements</h2>
 
 <ul>
-<li>100K messages (jobs/tasks/events).</li>
-<li>Running Redis, publisher and workers on a single machine.</li>
-<li>An almost zero-effort job (we just want to test the engine)</li>
-</ul><p>We got:</p>
+<li>Microsoft .Net Framework 4.0</li>
+<li>Redis</li>
+</ul><h2>Installing</h2>
+
+<h3>Producer side (your application)</h3>
+
+<p>Roque is available on the official Nuget gallery: <a href="https://nuget.org/packages/Roque">https://nuget.org/packages/Roque</a></p>
+
+<p>The package will add roque default configuration to your web|app.config.</p>
+
+<h3>Consumer side (workers)</h3>
+
+<p>On worker projects (containing service or subscriber classes) you can install Roque.Worker nuget package.
+Then you can then run roque in 3 ways:</p>
 
 <ul>
-<li>Enqueueing ~ 47.6K jobs per second</li>
-<li>Dequeueing with 1 worker ~ 4.6K jobs per second</li>
-<li>Dequeueing with 3 workers ~ 9.9K jobs per second </li>
-</ul><p>Note: Dequeuing speed can be increased by adding more workers (and eventually more Redis clusters).Although running multiple workers on same machine doesn't make a lot of sense, a more significant improvement would come from running workers on different machines.</p>
+<li>Console mode (using <code>Roque-Work</code> or <code>Roque-Work-Debug</code> on VisualStudio Package Manager Console)</li>
+<li>Install it as a service (using <a href="http://support.microsoft.com/kb/251192">SC</a>)</li>
+<li>Run embedded in your app with: <code>new WorkerHost().Start();</code>
+</li>
+</ul><p>For detailed instructions on creating and deploying workers check <a href="https://github.com/benjamine/Roque/blob/master/Roque.Service/WorkerUtils/README.worker.md">README.worker.md</a>.</p>
 
 <h2>Features</h2>
 
@@ -365,11 +421,26 @@ Queue _events has 1 event with subscribers
 <li>Configure retrying rules (time to wait before retrying, max number of times) based on Exception types.</li>
 <li>Minimal latency. By using Redis no polling is done, jobs are pushed immediately to the first available worker. pushing and popping is <em>fast</em> (Redis LPUSH / BRPOPLPUSH based).</li>
 <li>Monitor queue status, and check when queues are getting too long (need more workers?), or jobs are getting too old (workers are down or disconnected?).</li>
+<li>Run workers on a separate AppDomain.
+
+<ul>
+<li>Hot deploy. Roque restarts workers automatically if any *.config or *.dll is changed.</li>
+<li>Memory size monitoring. Roque can restart automatically when memory size consumed by workers exceeds a limit (detect and prevent memory leaks).</li>
+</ul>
+</li>
 <li>Supports 2 message queue patterns:
 
 <ul>
 <li>Work queues (by invoking methods). eg. request the execution of a job asynchronously.</li>
 <li>Message broadcasting (pub/sub) in front of work queues (by raising events). eg. notify multiple subscriptors that perform jobs on specific events.</li>
+</ul>
+</li>
+<li>Scheduled triggers. Set schedules on workers to enqueue specific jobs. 
+
+<ul>
+<li>Supports cron syntax</li>
+<li>Configure schedules on multiple workers to get redundancy. Only one job will be enqueued each time.</li>
+<li>Optionally, a parameter for the invoked method can be specified in config (in JSON format)</li>
 </ul>
 </li>
 </ul><h2>Queue Patterns</h2>
@@ -440,12 +511,23 @@ So this type of queue is used when raise events that are observed by a RoqueEven
 <li>These attribute can be specified at method or class level</li>
 <li>Multiple attributes can be applied (exception types are compared with the "is" operator from top to bottom like in catch {} blocks)</li>
 <li>by default jobs are never retried</li>
-</ul><h2>Requirements</h2>
+</ul><h2>Benchmarks</h2>
+
+<p>On a very preliminar and simple benchmark with this conditions:</p>
 
 <ul>
-<li>Microsoft .Net Framework 4.0</li>
-<li>Redis</li>
-</ul><h2>License</h2>
+<li>100K messages (jobs/tasks/events).</li>
+<li>Running Redis, publisher and workers on a single machine.</li>
+<li>An almost zero-effort job (we just want to test the engine)</li>
+</ul><p>We got:</p>
+
+<ul>
+<li>Enqueueing ~ 47.6K jobs per second</li>
+<li>Dequeueing with 1 worker ~ 4.6K jobs per second</li>
+<li>Dequeueing with 3 workers ~ 9.9K jobs per second </li>
+</ul><p>Note: Dequeuing speed can be increased by adding more workers (and eventually more Redis clusters).Although running multiple workers on same machine doesn't make a lot of sense, a more significant improvement would come from running workers on different machines.</p>
+
+<h2>License</h2>
 
 <p>(The MIT License)</p>
 
@@ -462,12 +544,22 @@ So this type of queue is used when raise events that are observed by a RoqueEven
     <!-- FOOTER  -->
     <div id="footer_wrap" class="outer">
       <footer class="inner">
-        <p class="copyright">Roque maintained by <a href="https://github.com/benjamine">benjamine</a></p>
+        <p class="copyright">Roque maintained by <a href="https://github.com/cinchcast">cinchcast</a></p>
         <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
       </footer>
     </div>
 
-    
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-36008134-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
 
   </body>
 </html>
