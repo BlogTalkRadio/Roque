@@ -33,9 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BookSleeve, Version=1.2.0.2, Culture=neutral, PublicKeyToken=9056fda458ff61cf, processorArchitecture=MSIL">
+    <Reference Include="BookSleeve, Version=1.2.0.5, Culture=neutral, PublicKeyToken=9056fda458ff61cf, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\BookSleeve.1.2.0.2\lib\BookSleeve.dll</HintPath>
+      <HintPath>..\packages\BookSleeve.1.2.0.5\lib\BookSleeve.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
