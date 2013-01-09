@@ -1,4 +1,3 @@
-
 # Roque
 
 _pronounced "raw-queue"_
@@ -414,7 +413,7 @@ Then you can then run roque in 3 ways:
 - Install it as a service (using [SC](http://support.microsoft.com/kb/251192))
 - Run embedded in your app with: ```new WorkerHost().Start();```
 
-For detailed instructions on creating and deploying workers check [README.worker.md](https://github.com/benjamine/Roque/blob/master/Roque.Service/WorkerUtils/README.worker.md).
+For detailed instructions on creating and deploying workers check [README.worker.md](https://github.com/cinchcast/Roque/blob/master/Roque.Service/WorkerUtils/README.worker.md).
 
 ## Features
 
@@ -446,7 +445,7 @@ Roque supports 2 type of queues:
 
 ### Work Queue
 
-<img src="https://raw.github.com/benjamine/Roque/master/mq_work.png" alt="work queue"/>
+<img src="https://raw.github.com/cinchcast/Roque/master/mq_work.png" alt="work queue"/>
 
 This type of queue is used when you directly invoke a method in a proxy (check Example 1)
 
@@ -457,7 +456,7 @@ This type of queue is used when you directly invoke a method in a proxy (check E
 
 ### Pub/Sub (in front of Work Queues)
 
-<img src="https://raw.github.com/benjamine/Roque/master/mq_pubsub_work.png" alt="pub/sub queue"/>
+<img src="https://raw.github.com/cinchcast/Roque/master/mq_pubsub_work.png" alt="pub/sub queue"/>
 
 Here a new actor appears to introduce decoupling between producer and consumers, this what we want when we create events in C#.
 So this type of queue is used when raise events that are observed by a RoqueEventBroadcaster. (check Example 2)
