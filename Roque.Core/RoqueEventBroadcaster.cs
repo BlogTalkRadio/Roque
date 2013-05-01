@@ -83,11 +83,11 @@ namespace Cinchcast.Roque.Core
                     job.IsEvent = true;
                     if (Broadcaster.EnqueueAsync)
                     {
-                        Broadcaster.Queue.Enqueue(job);
+                        Broadcaster.Queue.EnqueueAsync(job);
                     }
                     else
                     {
-                        Broadcaster.Queue.EnqueueAsync(job);
+                        Broadcaster.Queue.Enqueue(job);
                     }
                 }
                 else

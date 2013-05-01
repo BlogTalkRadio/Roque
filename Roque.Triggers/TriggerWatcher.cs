@@ -59,7 +59,6 @@ namespace Cinchcast.Roque.Triggers
                 return;
             }
 
-            bool firstTime = true;
             IsStopRequested = false;
             IsWatching = true;
             RoqueTrace.Source.TraceEvent(TraceEventType.Information, -1, "Trigger watcher started. Triggers: {0}", string.Join(", ", Triggers.Select(t => t.Name)));
@@ -122,7 +121,6 @@ namespace Cinchcast.Roque.Triggers
                     Thread.Sleep(Math.Min(sleepMilliseconds, 1000));
                     sleepMilliseconds -= 1000;
                 }
-                firstTime = false;
             }
             IsWatching = false;
             IsStopRequested = false;

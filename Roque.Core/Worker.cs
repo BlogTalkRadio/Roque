@@ -127,26 +127,26 @@ namespace Cinchcast.Roque.Core
             return worker;
         }
 
-        private Guid _ID = Guid.Empty;
+        private string _ID;
 
         /// <summary>
         /// Uniquely identifies a worker on it's queues. It's persisted in a file .Guid.txt to enable job resuming. 
         /// </summary>
-        public Guid ID
+        public string ID
         {
             get
             {
-                if (_ID == Guid.Empty)
+                if (_ID == null)
                 {
                     string guidFilePath = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Roque.Worker." + Name.ToLowerInvariant() + ".Guid.txt");
                     if (!File.Exists(guidFilePath))
                     {
-                        _ID = Guid.NewGuid();
-                        File.WriteAllText(guidFilePath, ID.ToString());
+                        _ID = Environment.MachineName + "-net-" + Guid.NewGuid().ToString();
+                        File.WriteAllText(guidFilePath, _ID);
                     }
                     else
                     {
-                        _ID = new Guid(File.ReadAllText(guidFilePath));
+                        _ID = File.ReadAllText(guidFilePath);
                     }
                 }
                 return _ID;

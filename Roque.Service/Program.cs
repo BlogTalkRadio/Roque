@@ -24,15 +24,19 @@ namespace Cinchcast.Roque.Service
         /// </summary>
         static void Main()
         {
-            if (Environment.UserInteractive)
+            var mustBeConsole = args.Length > 0 && !(
+                args[0].Equals("work", StringComparison.InvariantCultureIgnoreCase) ||
+                args[0].Equals("w", StringComparison.InvariantCultureIgnoreCase)
+                );
+
+            if (Environment.UserInteractive || mustBeConsole)
             {
                 Parser.RunConsole<RoqueApp>(args);
             }
             else
             {
-                ServiceBase[] ServicesToRun;
-                ServicesToRun = new ServiceBase[] { new RoqueService() };
-                ServiceBase.Run(ServicesToRun);
+                var servicesToRun = new ServiceBase[] { new RoqueService() };
+                ServiceBase.Run(servicesToRun);
             }
         }
 

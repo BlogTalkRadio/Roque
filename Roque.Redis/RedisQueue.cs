@@ -136,7 +136,7 @@ namespace Cinchcast.Roque.Redis
             }
             else
             {
-                return DateTime.Parse(data, CultureInfo.InvariantCulture);
+                return DateTime.Parse(data, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal).ToUniversalTime();
             }
         }
 
@@ -256,14 +256,14 @@ namespace Cinchcast.Roque.Redis
             {
                 foreach (var subscriber in subscribers)
                 {
-                    connection.Lists.AddFirst(0, GetRedisKeyForQueue(subscriber), data).ContinueWith(task =>
+                    try
                     {
-                        if (task.Exception != null)
-                        {
-                            RoqueTrace.Source.Trace(TraceEventType.Error, "[REDIS] Error enqueuing event on {0}. Event: {1}:{2}. {3}", subscriber, target, eventName, task.Exception.Message, task.Exception);
-                        }
-                    },
-                    TaskContinuationOptions.OnlyOnFaulted);
+                        connection.Lists.AddFirst(0, GetRedisKeyForQueue(subscriber), data).Wait();
+                    }
+                    catch (Exception ex)
+                    {
+                        RoqueTrace.Source.Trace(TraceEventType.Error, "[REDIS] Error enqueuing event on {0}. Event: {1}:{2}. {3}", subscriber, target, eventName, ex.Message, ex);
+                    }
                 }
                 if (RoqueTrace.Source.Switch.ShouldTrace(TraceEventType.Verbose))
                 {
