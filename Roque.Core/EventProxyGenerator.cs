@@ -62,6 +62,7 @@ namespace Cinchcast.Roque.Core
         {
             public IDictionary<string, IList<Delegate>> EventDelegates = new Dictionary<string, IList<Delegate>>();
             public IDictionary<string, int> EventDelegatesCounts = new Dictionary<string, int>();
+            private object _syncRoot = new object();
 
             public void Intercept(IInvocation invocation)
             {
@@ -97,10 +98,13 @@ namespace Cinchcast.Roque.Core
                     if (evenInfo != null)
                     {
                         IList<Delegate> delegates;
-                        if (!EventDelegates.TryGetValue(eventName, out delegates))
+                        lock (_syncRoot)
                         {
-                            delegates = new List<Delegate>();
-                            EventDelegates[eventName] = delegates;
+                            if (!EventDelegates.TryGetValue(eventName, out delegates))
+                            {
+                                delegates = new List<Delegate>();
+                                EventDelegates[eventName] = delegates;
+                            }
                         }
                         delegates.Add((Delegate)invocation.Arguments[0]);
                         return;
@@ -113,10 +117,13 @@ namespace Cinchcast.Roque.Core
                     if (evenInfo != null)
                     {
                         IList<Delegate> delegates;
-                        if (!EventDelegates.TryGetValue(eventName, out delegates))
+                        lock (_syncRoot)
                         {
-                            delegates = new List<Delegate>();
-                            EventDelegates[eventName] = delegates;
+                            if (!EventDelegates.TryGetValue(eventName, out delegates))
+                            {
+                                delegates = new List<Delegate>();
+                                EventDelegates[eventName] = delegates;
+                            }
                         }
                         delegates.Remove((Delegate)invocation.Arguments[0]);
                         return;

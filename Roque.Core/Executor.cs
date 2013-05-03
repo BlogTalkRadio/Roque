@@ -255,7 +255,9 @@ namespace Cinchcast.Roque.Core
             }
         }
 
-        private IDictionary<string, Target> _Targets = new Dictionary<string, Target>();
+        private object _syncRoot = new object();
+
+        private readonly IDictionary<string, Target> _Targets = new Dictionary<string, Target>();
 
         private static Executor _Instance;
 
@@ -311,17 +313,19 @@ namespace Cinchcast.Roque.Core
         private Target GetTarget(string targetTypeName, bool ifNotFoundUseEventProxy = false)
         {
             Target target;
-            string fullName = targetTypeName.Split(new[] { ',', ' ' }).First();
-            if (!_Targets.TryGetValue(fullName, out target))
+            var fullName = targetTypeName.Split(new[] { ',', ' ' }).First();
+            lock (_syncRoot)
             {
-                Type type = null;
-                type = Type.GetType(targetTypeName);
-                if (type == null)
+                if (!_Targets.TryGetValue(fullName, out target))
                 {
-                    throw new ShouldRetryException(TimeSpan.FromSeconds(10), 0, new Exception("Type not found: " + targetTypeName));
+                    var type = Type.GetType(targetTypeName);
+                    if (type == null)
+                    {
+                        throw new ShouldRetryException(TimeSpan.FromSeconds(10), 0, new Exception("Type not found: " + targetTypeName));
+                    }
+                    target = new Target(type, ifNotFoundUseEventProxy);
+                    _Targets[fullName] = target;
                 }
-                target = new Target(type, ifNotFoundUseEventProxy);
-                _Targets[fullName] = target;
             }
             return target;
         }
@@ -348,6 +352,7 @@ namespace Cinchcast.Roque.Core
                     {
                         RoqueTrace.Source.Trace(TraceEventType.Error, "Error injecting subscriber parameter: {0}. Method: {1}, Parameter: {2}, Expected Type: {3}",
                             ex.Message, suscribeMethod.Name, paramInfo.Name, paramInfo.ParameterType.FullName, ex);
+                        RoqueTrace.Source.Trace(TraceEventType.Error, "Error details: {0}", ex.ToString());
                         throw;
                     }
                 }
@@ -400,6 +405,7 @@ namespace Cinchcast.Roque.Core
                 {
                     RoqueTrace.Source.Trace(TraceEventType.Error, "Error registering subscriber: {0}. Type: {1}",
                         ex.Message, subscriberConfig.SubscriberType, ex);
+                    RoqueTrace.Source.Trace(TraceEventType.Error, "Error details: {0}", ex.ToString());
                     throw;
                 }
             }
