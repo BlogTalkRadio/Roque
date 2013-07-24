@@ -173,7 +173,7 @@ We don't want to clutter our user entity with the execution of this tasks. We al
         // call this on app startup
         public void Init() {
             // make all events on IUserEvents raised by this instance available for remote subscription
-            RoqueEventBroadcaster.SubscribeToAll<IUserEvents(UserBiz.Instance);
+            RoqueEventBroadcaster.SubscribeToAll<IUserEvents>(UserBiz.Instance);
         }
     }
 ``` 
