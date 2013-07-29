@@ -2,11 +2,11 @@
 <package >
   <metadata>
     <id>Roque.Worker</id>
-    <version>1.0.18</version>
+    <version>1.0.19</version>
     <authors>benjamineidelman@blogtalkradio.com</authors>
     <owners>benjamineidelman@blogtalkradio.com</owners>
-    <licenseUrl>https://raw.github.com/benjamine/Roque/master/MIT-LICENSE.txt</licenseUrl>
-    <projectUrl>http://benjamine.github.com/Roque/</projectUrl>
+    <licenseUrl>https://raw.github.com/cinchcast/Roque/master/MIT-LICENSE.txt</licenseUrl>
+    <projectUrl>http://cinchcast.github.com/Roque/</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>This package is for class libraries that implement worker services or subscribers. Roque is a queueing framework. Allows you to create Redis-based distributed async event and work queues by just using plain-old C# methods and events.</description>
     <releaseNotes></releaseNotes>

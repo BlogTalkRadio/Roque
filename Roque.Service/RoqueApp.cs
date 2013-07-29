@@ -18,6 +18,7 @@ using Cinchcast.Roque.Common;
 using Cinchcast.Roque.Core;
 using Cinchcast.Roque.Core.Configuration;
 using Cinchcast.Roque.Triggers;
+using Newtonsoft.Json;
 
 namespace Cinchcast.Roque.Service
 {
@@ -299,27 +300,52 @@ namespace Cinchcast.Roque.Service
         }
 
         [Verb(Description = "enqueue test jobs on a queue")]
-        private static void DoTestEnqueue([Required]string queue, [MoreThan(0)][LessThan(100001)] uint count = 10000, bool events = false)
+        private static void DoTestEnqueue([Required]string queue, 
+            [MoreOrEqualTo(1)][LessThan(100001)][CLAP.DefaultValue((uint)1)] uint count = 1, 
+            bool events = false, string target = null, string method = null, IEnumerable<string> arguments = null)
         {
+            Console.WriteLine("count="+ count);
             Stopwatch stopwatch = new Stopwatch();
-            if (events)
+            if (!string.IsNullOrWhiteSpace(target))
             {
-                MyClass myObject = new MyClass();
-                RoqueEventBroadcaster broadcaster = new RoqueEventBroadcaster(queue);
-                broadcaster.SubscribeToAll<INotifyPropertyChanged>(myObject);
+                var job = Job.Create(target, method);
+                job.IsEvent = events;
+                if (arguments != null)
+                {
+                    job.Arguments = arguments.ToArray();
+                }
+                var targetQueue = Queue.Get(queue);
                 stopwatch.Start();
                 for (int i = 1; i <= count; i++)
                 {
-                    myObject.Name = "New value #" + i;
+                    job.CreationUtc = DateTime.UtcNow;
+                    if (!targetQueue.Enqueue(job))
+                    {
+                        break;
+                    }
                 }
             }
             else
             {
-                var traceProxy = RoqueProxyGenerator.Create<ITrace>(Queue.Get(queue));
-                stopwatch.Start();
-                for (int i = 1; i <= count; i++)
+                if (events)
                 {
-                    traceProxy.TraceVerbose("TEST MESSAGE #" + i);
+                    MyClass myObject = new MyClass();
+                    RoqueEventBroadcaster broadcaster = new RoqueEventBroadcaster(queue);
+                    broadcaster.SubscribeToAll<INotifyPropertyChanged>(myObject);
+                    stopwatch.Start();
+                    for (int i = 1; i <= count; i++)
+                    {
+                        myObject.Name = "New value #" + i;
+                    }
+                }
+                else
+                {
+                    var traceProxy = RoqueProxyGenerator.Create<ITrace>(Queue.Get(queue));
+                    stopwatch.Start();
+                    for (int i = 1; i <= count; i++)
+                    {
+                        traceProxy.TraceVerbose("TEST MESSAGE #" + i);
+                    }
                 }
             }
             stopwatch.Stop();
